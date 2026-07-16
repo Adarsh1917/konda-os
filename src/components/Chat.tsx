@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import type { Chat as ChatType } from "../types/chat";
-import { askGemini } from "../services/gemini";
+import { askGemini, generateChatTitle } from "../services/gemini";
 
 interface ChatProps {
   chat: ChatType;
@@ -41,12 +41,34 @@ function Chat({ chat, setChats }: ChatProps) {
       )
     );
 
-    const conversation = [...chat.messages, userMessage];
+    // ⭐ Generate title only for a new chat
+    if (
+      chat.title.startsWith("New Chat") &&
+      chat.messages.length === 1
+    ) {
+      try {
+        const title = await generateChatTitle(userMessage.text);
+
+        setChats((prev) =>
+          prev.map((c) =>
+            c.id === chat.id
+              ? {
+                  ...c,
+                  title,
+                }
+              : c
+          )
+        );
+      } catch {
+        // Ignore title generation errors
+      }
+    }
 
     setInput("");
 
     try {
-      const reply = await askGemini(conversation);
+      // Send only the latest message
+      const reply = await askGemini(userMessage.text);
 
       const aiMessage = {
         id: crypto.randomUUID(),
