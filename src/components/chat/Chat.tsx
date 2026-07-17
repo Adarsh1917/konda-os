@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import type { Chat as ChatType } from "../types/chat";
-import { askGemini, generateChatTitle } from "../services/gemini";
+import type { Chat as ChatType } from "../../types/chat";
+import { askGemini, generateChatTitle } from "../../services/gemini";
 
 interface ChatProps {
   chat: ChatType;

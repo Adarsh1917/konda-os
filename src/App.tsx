@@ -1,4 +1,4 @@
-import Chat from "./components/Chat";
+import Chat from "./components/chat/Chat";
 import MainLayout from "./layouts/MainLayout";
 import { useChats } from "./hooks/useChats";
 import "./App.css";
