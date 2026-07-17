@@ -1,6 +1,5 @@
-import Header from "./components/Header";
-import Sidebar from "./components/sidebar/Sidebar";
 import Chat from "./components/Chat";
+import MainLayout from "./layouts/MainLayout";
 import { useChats } from "./hooks/useChats";
 import "./App.css";
 
@@ -16,24 +15,18 @@ function App() {
   } = useChats();
 
   return (
-    <div className="app">
-      <Sidebar
-        chats={chats}
-        currentChatId={currentChatId}
-        onSelectChat={setCurrentChatId}
-        onNewChat={createChat}
-        onDeleteChat={deleteChat}
+    <MainLayout
+      chats={chats}
+      currentChatId={currentChatId}
+      onSelectChat={setCurrentChatId}
+      onNewChat={createChat}
+      onDeleteChat={deleteChat}
+    >
+      <Chat
+        chat={currentChat}
+        setChats={setChats}
       />
-
-      <div className="main-content">
-        <Header />
-
-        <Chat
-          chat={currentChat}
-          setChats={setChats}
-        />
-      </div>
-    </div>
+    </MainLayout>
   );
 }
 
