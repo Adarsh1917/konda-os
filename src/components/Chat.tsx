@@ -24,12 +24,15 @@ function Chat({ chat, setChats }: ChatProps) {
 
     setLoading(true);
 
+    const userText = input.trim();
+
     const userMessage = {
       id: crypto.randomUUID(),
       sender: "user" as const,
-      text: input,
+      text: userText,
     };
 
+    // Add user message
     setChats((prev) =>
       prev.map((c) =>
         c.id === chat.id
@@ -41,13 +44,15 @@ function Chat({ chat, setChats }: ChatProps) {
       )
     );
 
-    // ⭐ Generate title only for a new chat
+    setInput("");
+
+    // Generate title only once
     if (
       chat.title.startsWith("New Chat") &&
       chat.messages.length === 1
     ) {
       try {
-        const title = await generateChatTitle(userMessage.text);
+        const title = await generateChatTitle(userText);
 
         setChats((prev) =>
           prev.map((c) =>
@@ -59,16 +64,13 @@ function Chat({ chat, setChats }: ChatProps) {
               : c
           )
         );
-      } catch {
-        // Ignore title generation errors
+      } catch (error) {
+        console.error(error);
       }
     }
 
-    setInput("");
-
     try {
-      // Send only the latest message
-      const reply = await askGemini(userMessage.text);
+      const reply = await askGemini(userText);
 
       const aiMessage = {
         id: crypto.randomUUID(),
@@ -86,11 +88,13 @@ function Chat({ chat, setChats }: ChatProps) {
             : c
         )
       );
-    } catch {
+    } catch (error) {
+      console.error(error);
+
       const aiMessage = {
         id: crypto.randomUUID(),
         sender: "ai" as const,
-        text: "❌ Sorry, I couldn't connect to Gemini.",
+        text: "❌ Sorry, I couldn't connect to Konda AI.",
       };
 
       setChats((prev) =>
@@ -126,7 +130,7 @@ function Chat({ chat, setChats }: ChatProps) {
           </div>
         )}
 
-        <div ref={messagesEndRef}></div>
+        <div ref={messagesEndRef} />
       </div>
 
       <div className="chat-input">

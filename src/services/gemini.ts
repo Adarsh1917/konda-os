@@ -1,9 +1,11 @@
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
-export async function askGemini(message: string) {
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`,
-    {
+const API_URL =
+  `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
+
+export async function askGemini(message: string): Promise<string> {
+  try {
+    const response = await fetch(API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -19,7 +21,9 @@ You are Konda AI.
 Rules:
 - Never mention Gemini.
 - Always introduce yourself as Konda AI.
-- Be friendly and helpful.
+- Be friendly, intelligent and professional.
+- Give clear and helpful answers.
+- Use markdown when appropriate.
 
 User:
 ${message}
@@ -29,21 +33,25 @@ ${message}
           },
         ],
       }),
-    }
-  );
+    });
 
-  const data = await response.json();
+    const data = await response.json();
 
-  return (
-    data.candidates?.[0]?.content?.parts?.[0]?.text ??
-    "Sorry, I couldn't generate a response."
-  );
+    return (
+      data.candidates?.[0]?.content?.parts?.[0]?.text ??
+      "Sorry, I couldn't generate a response."
+    );
+  } catch (error) {
+    console.error(error);
+    return "❌ Unable to connect to Konda AI.";
+  }
 }
 
-export async function generateChatTitle(message: string) {
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`,
-    {
+export async function generateChatTitle(
+  message: string
+): Promise<string> {
+  try {
+    const response = await fetch(API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -54,11 +62,13 @@ export async function generateChatTitle(message: string) {
             parts: [
               {
                 text: `
-Generate a short chat title (maximum 4 words).
+Generate a short title.
 
-Do not use quotes.
-Do not use punctuation.
-Return only the title.
+Rules:
+- Maximum 4 words.
+- No punctuation.
+- No quotation marks.
+- Return ONLY the title.
 
 Message:
 ${message}
@@ -68,13 +78,16 @@ ${message}
           },
         ],
       }),
-    }
-  );
+    });
 
-  const data = await response.json();
+    const data = await response.json();
 
-  return (
-    data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ??
-    "New Chat"
-  );
+    return (
+      data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ??
+      "New Chat"
+    );
+  } catch (error) {
+    console.error(error);
+    return "New Chat";
+  }
 }
