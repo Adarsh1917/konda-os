@@ -1,6 +1,12 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import type { Chat as ChatType } from "../../types/chat";
 import { askGemini, generateChatTitle } from "../../services/gemini";
+
+import MessageList from "./MessageList";
+import TypingIndicator from "./TypingIndicator";
+import ChatInput from "./ChatInput";
+import WelcomeScreen from "./WelcomeScreen";
+import "./Chat.css";
 
 interface ChatProps {
   chat: ChatType;
@@ -10,14 +16,6 @@ interface ChatProps {
 function Chat({ chat, setChats }: ChatProps) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({
-      behavior: "smooth",
-    });
-  }, [chat.messages, loading]);
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
@@ -32,7 +30,6 @@ function Chat({ chat, setChats }: ChatProps) {
       text: userText,
     };
 
-    // Add user message
     setChats((prev) =>
       prev.map((c) =>
         c.id === chat.id
@@ -46,7 +43,6 @@ function Chat({ chat, setChats }: ChatProps) {
 
     setInput("");
 
-    // Generate title only once
     if (
       chat.title.startsWith("New Chat") &&
       chat.messages.length === 1
@@ -113,46 +109,21 @@ function Chat({ chat, setChats }: ChatProps) {
   };
 
   return (
-    <main className="chat">
-      <div className="messages">
-        {chat.messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`message ${msg.sender}`}
-          >
-            {msg.text}
-          </div>
-        ))}
+    <main className="chat-workspace">
+      {chat.messages.length === 0 ? (
+        <WelcomeScreen />
+      ) : (
+        <MessageList messages={chat.messages} />
+      )}
 
-        {loading && (
-          <div className="message ai">
-            🤖 Konda AI is thinking...
-          </div>
-        )}
+      {loading && <TypingIndicator />}
 
-        <div ref={messagesEndRef} />
-      </div>
-
-      <div className="chat-input">
-        <input
-          value={input}
-          placeholder="Ask Konda AI..."
-          onChange={(e) => setInput(e.target.value)}
-          disabled={loading}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              sendMessage();
-            }
-          }}
-        />
-
-        <button
-          onClick={sendMessage}
-          disabled={loading}
-        >
-          {loading ? "Thinking..." : "Send"}
-        </button>
-      </div>
+      <ChatInput
+        input={input}
+        loading={loading}
+        onInputChange={setInput}
+        onSend={sendMessage}
+      />
     </main>
   );
 }
