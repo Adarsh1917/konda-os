@@ -1,24 +1,23 @@
 import { useState } from "react";
-import type { Chat } from "../../types/chat";
+import { useNavigate } from "react-router-dom";
+
 import SearchBar from "./SearchBar";
 import ChatItem from "./ChatItem";
 import "./Sidebar.css";
 
-interface SidebarProps {
-  chats: Chat[];
-  currentChatId: string;
-  onSelectChat: (id: string) => void;
-  onNewChat: () => void;
-  onDeleteChat: (id: string) => void;
-}
+import { useChatContext } from "../../context/ChatContext";
 
-function Sidebar({
-  chats,
-  currentChatId,
-  onSelectChat,
-  onNewChat,
-  onDeleteChat,
-}: SidebarProps) {
+function Sidebar() {
+  const navigate = useNavigate();
+
+  const {
+    chats,
+    currentChatId,
+    setCurrentChatId,
+    createChat,
+    deleteChat,
+  } = useChatContext();
+
   const [search, setSearch] = useState("");
 
   const filteredChats = chats.filter((chat) =>
@@ -31,9 +30,18 @@ function Sidebar({
         <h2>🚀 Konda OS</h2>
       </div>
 
-      <SearchBar value={search} onChange={setSearch} />
+      <SearchBar
+        value={search}
+        onChange={setSearch}
+      />
 
-      <button className="button new-chat-btn" onClick={onNewChat}>
+      <button
+        className="button new-chat-btn"
+        onClick={() => {
+          createChat();
+          navigate("/chat");
+        }}
+      >
         + New Chat
       </button>
 
@@ -43,10 +51,13 @@ function Sidebar({
             key={chat.id}
             chat={chat}
             isActive={chat.id === currentChatId}
-            onSelect={() => onSelectChat(chat.id)}
+            onSelect={() => {
+              setCurrentChatId(chat.id);
+              navigate("/chat");
+            }}
             onDelete={() => {
               if (window.confirm("Delete this chat?")) {
-                onDeleteChat(chat.id);
+                deleteChat(chat.id);
               }
             }}
           />
