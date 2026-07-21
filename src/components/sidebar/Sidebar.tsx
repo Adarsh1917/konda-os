@@ -1,71 +1,43 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-
-import SearchBar from "./SearchBar";
-import ChatItem from "./ChatItem";
 import "./Sidebar.css";
 
-import { useChatContext } from "../../context/ChatContext";
+import { navigation } from "../../data/navigation";
+import SidebarItem from "./SidebarItem";
 
 function Sidebar() {
-  const navigate = useNavigate();
-
-  const {
-    chats,
-    currentChatId,
-    setCurrentChatId,
-    createChat,
-    deleteChat,
-  } = useChatContext();
-
-  const [search, setSearch] = useState("");
-
-  const filteredChats = chats.filter((chat) =>
-    chat.title.toLowerCase().includes(search.toLowerCase())
-  );
-
   return (
     <aside className="sidebar">
+      {/* Logo Section */}
       <div className="sidebar-logo">
-        <h2>🚀 Konda OS</h2>
+        <div className="logo-circle">K</div>
+
+        <div>
+          <h2>Konda OS</h2>
+          <p>Your Personal AI Workspace</p>
+        </div>
       </div>
 
-      <SearchBar
-        value={search}
-        onChange={setSearch}
-      />
-
-      <button
-        className="button new-chat-btn"
-        onClick={() => {
-          createChat();
-          navigate("/chat");
-        }}
-      >
-        + New Chat
-      </button>
-
-      <div className="chat-list">
-        {filteredChats.map((chat) => (
-          <ChatItem
-            key={chat.id}
-            chat={chat}
-            isActive={chat.id === currentChatId}
-            onSelect={() => {
-              setCurrentChatId(chat.id);
-              navigate("/chat");
-            }}
-            onDelete={() => {
-              if (window.confirm("Delete this chat?")) {
-                deleteChat(chat.id);
-              }
-            }}
+      {/* Navigation */}
+      <nav className="sidebar-nav">
+        {navigation.map((item) => (
+          <SidebarItem
+            key={item.path}
+            title={item.title}
+            path={item.path}
+            icon={item.icon}
           />
         ))}
-      </div>
+      </nav>
 
+      {/* Footer */}
       <div className="sidebar-footer">
-        <small>Konda OS v0.1</small>
+        <div className="user-avatar">A</div>
+
+        <div>
+          <h4>Adarsh</h4>
+          <p>Student</p>
+        </div>
+
+        <span className="version">v0.2 Alpha</span>
       </div>
     </aside>
   );
