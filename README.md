@@ -1,0 +1,2 @@
+# konda-os
+advance ai 
