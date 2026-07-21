@@ -1,12 +1,19 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { Chat as ChatType } from "../../types/chat";
-import { askGemini, generateChatTitle } from "../../services/gemini";
+
+import { AIManager } from "../../ai";
+import { GeminiProvider, LocalProvider } from "../../ai";
+
+import { generateChatTitle } from "../../services/gemini";
 
 import MessageList from "./MessageList";
 import TypingIndicator from "./TypingIndicator";
 import ChatInput from "./ChatInput";
 import WelcomeScreen from "./WelcomeScreen";
+import ModelSelector from "./ModelSelector";
+
 import "./Chat.css";
+import "./ModelSelector.css";
 
 interface ChatProps {
   chat: ChatType;
@@ -16,6 +23,17 @@ interface ChatProps {
 function Chat({ chat, setChats }: ChatProps) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const [selectedModel, setSelectedModel] =
+    useState("gemini");
+
+  const aiManager = useMemo(() => {
+    if (selectedModel === "local") {
+      return new AIManager(new LocalProvider());
+    }
+
+    return new AIManager(new GeminiProvider());
+  }, [selectedModel]);
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
@@ -48,7 +66,8 @@ function Chat({ chat, setChats }: ChatProps) {
       chat.messages.length === 1
     ) {
       try {
-        const title = await generateChatTitle(userText);
+        const title =
+          await generateChatTitle(userText);
 
         setChats((prev) =>
           prev.map((c) =>
@@ -66,7 +85,7 @@ function Chat({ chat, setChats }: ChatProps) {
     }
 
     try {
-      const reply = await askGemini(userText);
+      const reply = await aiManager.chat(userText);
 
       const aiMessage = {
         id: crypto.randomUUID(),
@@ -90,7 +109,7 @@ function Chat({ chat, setChats }: ChatProps) {
       const aiMessage = {
         id: crypto.randomUUID(),
         sender: "ai" as const,
-        text: "❌ Sorry, I couldn't connect to Konda AI.",
+        text: "❌ Sorry, Konda AI is unavailable.",
       };
 
       setChats((prev) =>
@@ -110,8 +129,15 @@ function Chat({ chat, setChats }: ChatProps) {
 
   return (
     <main className="chat-workspace">
+      <ModelSelector
+        selectedModel={selectedModel}
+        onModelChange={setSelectedModel}
+      />
+
       {chat.messages.length === 0 ? (
-        <WelcomeScreen />
+        <WelcomeScreen
+          onSuggestionClick={setInput}
+        />
       ) : (
         <MessageList messages={chat.messages} />
       )}

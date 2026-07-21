@@ -1,0 +1,81 @@
+.chat-input-wrapper {
+    padding: 20px;
+    background: #0f172a;
+    border-top: 1px solid #1e293b;
+}
+
+/* ===========================
+   Quick Actions
+=========================== */
+
+.quick-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.quick-action-btn {
+    background: #1e293b;
+    color: white;
+    border: 1px solid #334155;
+    border-radius: 999px;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: all .2s ease;
+    font-size: 14px;
+}
+
+.quick-action-btn:hover {
+    background: #2563eb;
+    border-color: #3b82f6;
+}
+
+/* ===========================
+   Input
+=========================== */
+
+.chat-input-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 18px;
+    padding: 12px;
+}
+
+.chat-input-container input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: white;
+    font-size: 16px;
+}
+
+.chat-input-container input::placeholder {
+    color: #94a3b8;
+}
+
+.send-button {
+    width: 48px;
+    height: 48px;
+    border: none;
+    border-radius: 14px;
+    background: #2563eb;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all .2s ease;
+}
+
+.send-button:hover:not(:disabled) {
+    background: #1d4ed8;
+    transform: scale(1.05);
+}
+
+.send-button:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+}
