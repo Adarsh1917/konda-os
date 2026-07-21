@@ -1,6 +1,8 @@
+type ModelType = "gemini" | "local";
+
 interface ModelSelectorProps {
-  selectedModel: string;
-  onModelChange: (model: string) => void;
+  selectedModel: ModelType;
+  onModelChange: (model: ModelType) => void;
 }
 
 function ModelSelector({
@@ -14,7 +16,9 @@ function ModelSelector({
       <select
         id="model-select"
         value={selectedModel}
-        onChange={(e) => onModelChange(e.target.value)}
+        onChange={(e) =>
+          onModelChange(e.target.value as ModelType)
+        }
       >
         <option value="gemini">✨ Gemini</option>
         <option value="local" disabled>

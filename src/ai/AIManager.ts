@@ -11,17 +11,25 @@ export class AIManager {
     this.provider = provider;
   }
 
+  getProvider(): AIProvider {
+    return this.provider;
+  }
+
   getProviderName(): string {
     return this.provider.name;
   }
 
-  async chat(userMessage: string): Promise<string> {
-    const messages: AIMessage[] = [
+  private buildConversation(userMessage: string): AIMessage[] {
+    return [
       {
         role: "user",
         content: userMessage,
       },
     ];
+  }
+
+  async sendMessage(userMessage: string): Promise<string> {
+    const messages = this.buildConversation(userMessage);
 
     return this.provider.sendMessage(messages);
   }

@@ -1,4 +1,5 @@
 import type { AIMessage, AIProvider } from "../types/ai";
+import { systemPrompt } from "../prompts";
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
@@ -10,8 +11,8 @@ export class GeminiProvider implements AIProvider {
 
   async sendMessage(messages: AIMessage[]): Promise<string> {
     try {
-      const prompt = messages
-        .map((m) => `${m.role.toUpperCase()}: ${m.content}`)
+      const conversation = messages
+        .map((message) => `${message.role.toUpperCase()}: ${message.content}`)
         .join("\n\n");
 
       const response = await fetch(API_URL, {
@@ -25,18 +26,11 @@ export class GeminiProvider implements AIProvider {
               parts: [
                 {
                   text: `
-You are Konda AI.
-
-Rules:
-- Never mention Gemini.
-- Always introduce yourself as Konda AI.
-- Be friendly.
-- Give professional answers.
-- Use markdown when helpful.
+${systemPrompt}
 
 Conversation:
 
-${prompt}
+${conversation}
 `,
                 },
               ],
@@ -52,7 +46,8 @@ ${prompt}
         "Sorry, I couldn't generate a response."
       );
     } catch (error) {
-      console.error(error);
+      console.error("GeminiProvider Error:", error);
+
       return "❌ Unable to connect to Konda AI.";
     }
   }

@@ -1,9 +1,7 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import type { Chat as ChatType } from "../../types/chat";
-
-import { AIManager } from "../../ai";
-import { GeminiProvider, LocalProvider } from "../../ai";
-
+import "./ModelSelector.css";
+import { useAI } from "../../hooks/useAI";
 import { generateChatTitle } from "../../services/gemini";
 
 import MessageList from "./MessageList";
@@ -24,16 +22,11 @@ function Chat({ chat, setChats }: ChatProps) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const [selectedModel, setSelectedModel] =
-    useState("gemini");
-
-  const aiManager = useMemo(() => {
-    if (selectedModel === "local") {
-      return new AIManager(new LocalProvider());
-    }
-
-    return new AIManager(new GeminiProvider());
-  }, [selectedModel]);
+  const {
+    aiManager,
+    selectedModel,
+    setSelectedModel,
+  } = useAI();
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
@@ -66,8 +59,7 @@ function Chat({ chat, setChats }: ChatProps) {
       chat.messages.length === 1
     ) {
       try {
-        const title =
-          await generateChatTitle(userText);
+        const title = await generateChatTitle(userText);
 
         setChats((prev) =>
           prev.map((c) =>
@@ -85,7 +77,7 @@ function Chat({ chat, setChats }: ChatProps) {
     }
 
     try {
-      const reply = await aiManager.chat(userText);
+      const reply = await aiManager.sendMessage(userText);
 
       const aiMessage = {
         id: crypto.randomUUID(),
@@ -135,9 +127,7 @@ function Chat({ chat, setChats }: ChatProps) {
       />
 
       {chat.messages.length === 0 ? (
-        <WelcomeScreen
-          onSuggestionClick={setInput}
-        />
+        <WelcomeScreen onSuggestionClick={setInput} />
       ) : (
         <MessageList messages={chat.messages} />
       )}
