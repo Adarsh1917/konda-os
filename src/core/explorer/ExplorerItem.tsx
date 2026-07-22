@@ -48,9 +48,7 @@ export default function ExplorerItem({
       <div
         style={{ paddingLeft }}
         className={`flex items-center gap-2 py-2 px-2 cursor-pointer select-none transition-colors ${
-          isSelected
-            ? "bg-blue-600 text-white"
-            : "hover:bg-zinc-800"
+          isSelected ? "bg-blue-600 text-white" : "hover:bg-zinc-800"
         }`}
         onClick={() => {
           onSelect(node.id);

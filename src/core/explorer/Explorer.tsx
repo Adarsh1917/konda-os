@@ -1,77 +1,125 @@
 import { useState } from "react";
+import ExplorerItem from "./ExplorerItem";
+import ContextMenu from "../context-menu/ContextMenu";
 import type { ExplorerNode } from "../../types/explorer";
 
-interface Props {
-  node: ExplorerNode;
-  level: number;
-  selectedId: string | null;
-  onSelect: (id: string) => void;
-}
+const initialFiles: ExplorerNode[] = [
+  {
+    id: "1",
+    name: "Project",
+    type: "folder",
+    expanded: true,
+    children: [
+      {
+        id: "2",
+        name: "main.py",
+        type: "python",
+      },
+      {
+        id: "3",
+        name: "README.md",
+        type: "markdown",
+      },
+    ],
+  },
+];
 
-export default function ExplorerItem({
-  node,
-  level,
-  selectedId,
-  onSelect,
-}: Props) {
-  const [expanded, setExpanded] = useState(node.expanded ?? false);
+export default function Explorer() {
+  const [files, setFiles] = useState<ExplorerNode[]>(initialFiles);
 
-  const paddingLeft = 12 + level * 18;
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const getIcon = () => {
-    switch (node.type) {
-      case "folder":
-        return expanded ? "📂" : "📁";
-      case "python":
-        return "🐍";
-      case "java":
-        return "☕";
-      case "cpp":
-        return "⚙️";
-      case "javascript":
-        return "🟨";
-      case "typescript":
-        return "🔷";
-      case "markdown":
-        return "📝";
-      case "json":
-        return "🧩";
-      default:
-        return "📄";
-    }
+  const [menuVisible, setMenuVisible] = useState(false);
+
+  const [menuPosition, setMenuPosition] = useState({
+    x: 0,
+    y: 0,
+  });
+
+  const handleNewFile = () => {
+    const newFile: ExplorerNode = {
+      id: crypto.randomUUID(),
+      name: "NewFile.py",
+      type: "python",
+    };
+
+    setFiles((prev) => {
+      const updated = [...prev];
+
+      if (updated.length > 0 && updated[0].type === "folder") {
+        updated[0] = {
+          ...updated[0],
+          children: [...(updated[0].children ?? []), newFile],
+        };
+      }
+
+      return updated;
+    });
+
+    setMenuVisible(false);
   };
 
-  const isSelected = selectedId === node.id;
+  const handleNewFolder = () => {
+    const newFolder: ExplorerNode = {
+      id: crypto.randomUUID(),
+      name: "New Folder",
+      type: "folder",
+      expanded: true,
+      children: [],
+    };
+
+    setFiles((prev) => {
+      const updated = [...prev];
+
+      if (updated.length > 0 && updated[0].type === "folder") {
+        updated[0] = {
+          ...updated[0],
+          children: [...(updated[0].children ?? []), newFolder],
+        };
+      }
+
+      return updated;
+    });
+
+    setMenuVisible(false);
+  };
 
   return (
-    <>
-      <div
-        style={{ paddingLeft }}
-        className={`flex items-center gap-2 py-2 px-2 cursor-pointer select-none transition-colors ${
-          isSelected ? "bg-blue-600 text-white" : "hover:bg-zinc-800"
-        }`}
-        onClick={() => {
-          onSelect(node.id);
+    <div
+      className="w-64 h-full bg-zinc-900 text-white border-r border-zinc-800 overflow-auto"
+      onContextMenu={(e) => {
+        e.preventDefault();
 
-          if (node.type === "folder") {
-            setExpanded(!expanded);
-          }
-        }}
-      >
-        <span>{getIcon()}</span>
-        <span>{node.name}</span>
+        setMenuVisible(true);
+
+        setMenuPosition({
+          x: e.clientX,
+          y: e.clientY,
+        });
+      }}
+    >
+      <div className="p-3 font-semibold border-b border-zinc-800">
+        Explorer
       </div>
 
-      {expanded &&
-      node.children?.map((child: ExplorerNode) => (
-          <ExplorerItem
-            key={child.id}
-            node={child}
-            level={level + 1}
-            selectedId={selectedId}
-            onSelect={onSelect}
-          />
-        ))}
-    </>
+      {files.map((item) => (
+        <ExplorerItem
+          key={item.id}
+          node={item}
+          level={0}
+          selectedId={selectedId}
+          onSelect={setSelectedId}
+        />
+      ))}
+
+      <ContextMenu
+        x={menuPosition.x}
+        y={menuPosition.y}
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        onNewFile={handleNewFile}
+        onNewFolder={handleNewFolder}
+      />
+    </div>
   );
 }
