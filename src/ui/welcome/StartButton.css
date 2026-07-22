@@ -1,0 +1,35 @@
+.start-button{
+
+  margin-top:50px;
+
+  padding:16px 40px;
+
+  border:none;
+
+  border-radius:50px;
+
+  cursor:pointer;
+
+  font-size:1rem;
+
+  font-weight:600;
+
+  color:white;
+
+  background:
+      linear-gradient(135deg,#00E5FF,#3B82F6,#7C3AED);
+
+  box-shadow:
+      0 0 20px rgba(0,229,255,.5);
+
+  transition:.35s;
+}
+
+.start-button:hover{
+
+  transform:translateY(-4px) scale(1.05);
+
+  box-shadow:
+      0 0 35px rgba(0,229,255,.8);
+
+}

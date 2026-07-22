@@ -1,0 +1,58 @@
+.today-plan {
+  padding: 25px;
+  border-radius: 24px;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(20px);
+}
+
+.today-plan h2 {
+  color: white;
+  margin-bottom: 20px;
+}
+
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.task-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 18px;
+
+  border-radius: 16px;
+
+  background: rgba(255,255,255,.05);
+
+  border: 1px solid rgba(255,255,255,.08);
+
+  transition: .3s;
+}
+
+.task-card:hover {
+  border-color: #00E5FF;
+  transform: translateX(6px);
+}
+
+.task-card h3 {
+  color: white;
+  margin-bottom: 6px;
+}
+
+.task-card p {
+  color: #94A3B8;
+}
+
+.task-status {
+  width: 14px;
+  height: 14px;
+
+  border-radius: 50%;
+
+  background: #00E5FF;
+
+  box-shadow: 0 0 12px #00E5FF;
+}

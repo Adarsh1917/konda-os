@@ -1,0 +1,24 @@
+.action-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 60px;
+  height: 60px;
+
+  border-radius: 16px;
+
+  background: rgba(0, 229, 255, 0.12);
+
+  color: #00E5FF;
+
+  margin-bottom: 18px;
+
+  transition: 0.3s;
+}
+
+.action-card:hover .action-icon {
+  transform: scale(1.1);
+
+  background: rgba(0, 229, 255, 0.2);
+}

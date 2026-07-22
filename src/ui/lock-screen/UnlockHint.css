@@ -1,0 +1,40 @@
+.unlock-container {
+  margin-top: 60px;
+  display: flex;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.unlock-text {
+  color: #00e5ff;
+  font-size: 1rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+
+  animation: pulse 2s infinite;
+
+  user-select: none;
+}
+
+.unlock-text:hover {
+  color: white;
+}
+
+@keyframes pulse {
+
+  0% {
+    opacity: .4;
+    transform: translateY(0px);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(-4px);
+  }
+
+  100% {
+    opacity: .4;
+    transform: translateY(0px);
+  }
+
+}

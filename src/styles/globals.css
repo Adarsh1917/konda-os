@@ -1,56 +1,15 @@
-*,
-*::before,
-*::after{
+*{
   margin:0;
   padding:0;
   box-sizing:border-box;
 }
 
-html{
-  scroll-behavior:smooth;
-}
-
 body{
-  font-family: Inter, system-ui, sans-serif;
-  background:var(--color-background);
-  color:var(--color-text);
-}
 
-a{
-  text-decoration:none;
-  color:inherit;
-}
+  background:var(--bg);
 
-button{
-  font:inherit;
-  cursor:pointer;
-}
+  color:var(--text);
 
-img{
-  max-width:100%;
-  display:block;
-}
+  font-family:Inter,sans-serif;
 
-ul{
-  list-style:none;
-}
-
-#root{
-  min-height:100vh;
-}
-
-.app{
-  display:flex;
-  min-height:100vh;
-}
-
-.main-content{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-}
-
-.page{
-  flex:1;
-  padding:24px;
 }
