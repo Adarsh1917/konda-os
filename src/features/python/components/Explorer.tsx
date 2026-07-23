@@ -1,6 +1,6 @@
 import { useState } from "react";
 import ExplorerItem from "./ExplorerItem";
-import type { FileNode } from "./types";
+import type { FileNode } from "../types";
 
 interface ExplorerProps {
   project: FileNode[];
