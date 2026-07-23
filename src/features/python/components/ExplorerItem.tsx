@@ -6,6 +6,10 @@ interface ExplorerItemProps {
   level: number;
   selectedId: string | null;
   onSelect: (node: FileNode) => void;
+  onContextMenu: (
+    e: React.MouseEvent,
+    node: FileNode
+  ) => void;
 }
 
 export default function ExplorerItem({
@@ -13,8 +17,11 @@ export default function ExplorerItem({
   level,
   selectedId,
   onSelect,
+  onContextMenu,
 }: ExplorerItemProps) {
-  const [expanded, setExpanded] = useState(node.expanded ?? false);
+  const [expanded, setExpanded] = useState(
+    node.expanded ?? false
+  );
 
   const isFolder = node.type === "folder";
   const isSelected = selectedId === node.id;
@@ -23,9 +30,13 @@ export default function ExplorerItem({
     <>
       <div
         className={`flex items-center gap-2 px-3 py-2 cursor-pointer select-none transition-colors ${
-          isSelected ? "bg-blue-600 text-white" : "hover:bg-zinc-800"
+          isSelected
+            ? "bg-blue-600 text-white"
+            : "hover:bg-zinc-800"
         }`}
-        style={{ paddingLeft: `${12 + level * 18}px` }}
+        style={{
+          paddingLeft: `${12 + level * 18}px`,
+        }}
         onClick={() => {
           onSelect(node);
 
@@ -33,9 +44,16 @@ export default function ExplorerItem({
             setExpanded(!expanded);
           }
         }}
+        onContextMenu={(e) =>
+          onContextMenu(e, node)
+        }
       >
         <span>
-          {isFolder ? (expanded ? "📂" : "📁") : "📄"}
+          {isFolder
+            ? expanded
+              ? "📂"
+              : "📁"
+            : "📄"}
         </span>
 
         <span>{node.name}</span>
@@ -50,6 +68,7 @@ export default function ExplorerItem({
             level={level + 1}
             selectedId={selectedId}
             onSelect={onSelect}
+            onContextMenu={onContextMenu}
           />
         ))}
     </>
