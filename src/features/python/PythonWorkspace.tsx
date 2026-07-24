@@ -1,6 +1,9 @@
 import "./PythonWorkspace.css";
+
 import Editor from "@monaco-editor/react";
+
 import ProjectHeader from "./components/project/ProjectHeader";
+import StatusBar from "./components/statusbar/StatusBar";
 
 import Explorer from "./components/Explorer";
 import Tabs from "./components/Tabs";
@@ -36,52 +39,64 @@ export default function PythonWorkspace() {
   });
 
   return (
-    <div className="flex h-screen bg-zinc-950 text-white">
-      <div className="w-64 border-r border-zinc-800 overflow-auto">
-        <Explorer
-          project={project}
-          onOpenFile={openFile}
-          createFolder={createFolder}
-          createFile={createFile}
-          renameItem={renameItem}
-          deleteItem={deleteItem}
-        />
-      </div>
+    <div className="flex h-screen bg-zinc-950 text-white flex-col">
+      <div className="flex flex-1 overflow-hidden">
+        {/* Explorer */}
+        <div className="w-64 border-r border-zinc-800 overflow-auto">
+          <Explorer
+            project={project}
+            onOpenFile={openFile}
+            createFolder={createFolder}
+            createFile={createFile}
+            renameItem={renameItem}
+            deleteItem={deleteItem}
+          />
+        </div>
 
-      <div className="flex flex-1 flex-col">
-        <ProjectHeader
-  projectName="Untitled Project"
-  saved={true}
-/>
-        <Tabs
-          tabs={openTabs}
-          activeTabId={activeTabId}
-          onSelect={selectTab}
-          onClose={closeTab}
-        />
+        {/* Editor Area */}
+        <div className="flex flex-1 flex-col">
+          <ProjectHeader
+            projectName="Untitled Project"
+            saved={true}
+          />
 
-        <div className="flex-1">
-          {activeFile ? (
-            <Editor
-              height="100%"
-              language="python"
-              value={editor.value}
-              theme="vs-dark"
-              onChange={(value) => editor.updateValue(value ?? "")}
-              options={{
-                fontSize: 15,
-                minimap: { enabled: false },
-                automaticLayout: true,
-                scrollBeyondLastLine: false,
-              }}
-            />
-          ) : (
-            <div className="h-full flex items-center justify-center text-zinc-500">
-              Open a file from Explorer
-            </div>
-          )}
+          <Tabs
+            tabs={openTabs}
+            activeTabId={activeTabId}
+            onSelect={selectTab}
+            onClose={closeTab}
+          />
+
+          <div className="flex-1">
+            {activeFile ? (
+              <Editor
+                height="100%"
+                language="python"
+                value={editor.value}
+                theme="vs-dark"
+                onChange={(value) =>
+                  editor.updateValue(value ?? "")
+                }
+                options={{
+                  fontSize: 15,
+                  minimap: {
+                    enabled: false,
+                  },
+                  automaticLayout: true,
+                  scrollBeyondLastLine: false,
+                }}
+              />
+            ) : (
+              <div className="h-full flex items-center justify-center text-zinc-500">
+                Open a file from Explorer
+              </div>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* IDE Status Bar */}
+      <StatusBar />
     </div>
   );
 }
