@@ -1,0 +1,107 @@
+.konda-sidebar {
+  width: 280px;
+  min-width: 280px;
+  max-width: 280px;
+
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  background: #1e1e1e;
+
+  border-right: 1px solid #2d2d30;
+
+  overflow: hidden;
+}
+
+.konda-sidebar-header {
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 14px;
+
+  border-bottom: 1px solid #2d2d30;
+
+  background: #252526;
+
+  flex-shrink: 0;
+}
+
+.konda-sidebar-title {
+  font-size: 11px;
+
+  font-weight: 700;
+
+  text-transform: uppercase;
+
+  letter-spacing: 1px;
+
+  color: #cccccc;
+}
+
+.konda-sidebar-content {
+  flex: 1;
+
+  overflow: auto;
+
+  background: #1e1e1e;
+}
+
+.konda-sidebar-placeholder {
+  padding: 22px;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 12px;
+}
+
+.konda-sidebar-placeholder h3 {
+  margin: 0;
+
+  font-size: 18px;
+
+  font-weight: 600;
+
+  color: #ffffff;
+}
+
+.konda-sidebar-placeholder p {
+  margin: 0;
+
+  font-size: 13px;
+
+  line-height: 1.6;
+
+  color: #9ca3af;
+}
+
+.konda-sidebar-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.konda-sidebar-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.konda-sidebar-content::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+
+  border-radius: 999px;
+}
+
+.konda-sidebar-content::-webkit-scrollbar-thumb:hover {
+  background: #52525b;
+}
+
+@media (max-width: 900px) {
+  .konda-sidebar {
+    width: 240px;
+    min-width: 240px;
+    max-width: 240px;
+  }
+}

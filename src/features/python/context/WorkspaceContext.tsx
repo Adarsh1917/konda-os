@@ -1,7 +1,9 @@
 import {
   createContext,
   useContext,
+  type Dispatch,
   type ReactNode,
+  type SetStateAction,
 } from "react";
 
 import type { FileNode } from "../types";
@@ -12,38 +14,81 @@ export interface OpenTab {
 }
 
 export interface WorkspaceContextType {
+  /* ==========================
+     State
+  ========================== */
+
   project: FileNode[];
-  setProject: React.Dispatch<
-    React.SetStateAction<FileNode[]>
+  setProject: Dispatch<
+    SetStateAction<FileNode[]>
   >;
 
   activeFile: FileNode | null;
-  setActiveFile: React.Dispatch<
-    React.SetStateAction<FileNode | null>
+  setActiveFile: Dispatch<
+    SetStateAction<FileNode | null>
   >;
 
   activeTabId: string | null;
-  setActiveTabId: React.Dispatch<
-    React.SetStateAction<string | null>
+  setActiveTabId: Dispatch<
+    SetStateAction<string | null>
   >;
 
   openTabs: OpenTab[];
-  setOpenTabs: React.Dispatch<
-    React.SetStateAction<OpenTab[]>
+  setOpenTabs: Dispatch<
+    SetStateAction<OpenTab[]>
   >;
 
   showDialog: boolean;
-  setShowDialog: React.Dispatch<
-    React.SetStateAction<boolean>
+  setShowDialog: Dispatch<
+    SetStateAction<boolean>
   >;
+
+  /* ==========================
+     Workspace Actions
+  ========================== */
+
+  updateActiveFile: (
+    content: string
+  ) => void;
+
+  openFile: (
+    file: FileNode
+  ) => void;
+
+  selectTab: (
+    id: string
+  ) => void;
+
+  closeTab: (
+    id: string
+  ) => void;
+
+  createFolder: (
+    parentId: string,
+    folderName: string
+  ) => void;
+
+  createFile: (
+    parentId: string,
+    fileName: string
+  ) => void;
+
+  renameItem: (
+    id: string,
+    newName: string
+  ) => void;
+
+  deleteItem: (
+    id: string
+  ) => void;
 }
 
-export const WorkspaceContext =
+const WorkspaceContext =
   createContext<WorkspaceContextType | null>(
     null
   );
 
-interface Props {
+interface WorkspaceProviderProps {
   value: WorkspaceContextType;
   children: ReactNode;
 }
@@ -51,7 +96,7 @@ interface Props {
 export function WorkspaceProvider({
   value,
   children,
-}: Props) {
+}: WorkspaceProviderProps) {
   return (
     <WorkspaceContext.Provider value={value}>
       {children}
@@ -60,9 +105,8 @@ export function WorkspaceProvider({
 }
 
 export function useWorkspaceContext() {
-  const context = useContext(
-    WorkspaceContext
-  );
+  const context =
+    useContext(WorkspaceContext);
 
   if (!context) {
     throw new Error(
@@ -72,3 +116,5 @@ export function useWorkspaceContext() {
 
   return context;
 }
+
+export default WorkspaceContext;
