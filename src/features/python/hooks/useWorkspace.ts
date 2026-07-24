@@ -1,7 +1,13 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FileNode } from "../types";
 
 import { initialProject } from "../data/project";
+
+import {
+  loadWorkspace,
+  saveWorkspace,
+  type WorkspaceState,
+} from "../storage/workspaceStorage";
 
 import {
   findFileById,
@@ -11,50 +17,129 @@ import {
   deleteNode,
   findNodeById,
 } from "../utils/tree";
-;
 
 interface OpenTab {
   id: string;
   name: string;
 }
 
-export function useWorkspace() {
-  const [project, setProject] =
-    useState<FileNode[]>(initialProject);
-
+function createDefaultWorkspace() {
   const firstFile = findFileById(initialProject, "main");
 
-  const [activeFile, setActiveFile] =
-    useState<FileNode | null>(firstFile);
-
-  const [activeTabId, setActiveTabId] =
-    useState<string | null>(firstFile?.id ?? null);
-
-  const [openTabs, setOpenTabs] = useState<OpenTab[]>(
-    firstFile
+  return {
+    project: initialProject,
+    activeFile: firstFile ?? null,
+    activeTabId: firstFile?.id ?? null,
+    openTabs: firstFile
       ? [
           {
             id: firstFile.id,
             name: firstFile.name,
           },
         ]
-      : []
-  );
+      : [],
+  };
+}
+
+export function useWorkspace() {
+  const defaults = createDefaultWorkspace();
+
+  const restored = loadWorkspace();
+
+  const initialProjectState =
+    restored?.project ?? defaults.project;
+
+  const initialOpenTabs =
+    restored?.openTabs ?? defaults.openTabs;
+
+  const initialActiveTab =
+    restored?.activeTabId ?? defaults.activeTabId;
+
+  const initialActiveFile =
+    initialActiveTab == null
+      ? null
+      : findFileById(
+          initialProjectState,
+          initialActiveTab
+        );
+
+  const [project, setProject] =
+    useState<FileNode[]>(initialProjectState);
+
+  const [activeFile, setActiveFile] =
+    useState<FileNode | null>(
+      initialActiveFile
+    );
+
+  const [activeTabId, setActiveTabId] =
+    useState<string | null>(
+      initialActiveTab
+    );
+
+  const [openTabs, setOpenTabs] =
+    useState<OpenTab[]>(
+      initialOpenTabs
+    );
 
   const [showDialog, setShowDialog] =
     useState(false);
+
+  const initialized = useRef(false);
+
+  /* ===========================
+     Initial Sync
+  =========================== */
+
+  useEffect(() => {
+    if (activeTabId == null) {
+      setActiveFile(null);
+      initialized.current = true;
+      return;
+    }
+
+    const file = findFileById(
+      project,
+      activeTabId
+    );
+
+    setActiveFile(file ?? null);
+
+    initialized.current = true;
+  }, []);
+
+  /* ===========================
+     Auto Save
+  =========================== */
+
+  useEffect(() => {
+    if (!initialized.current) return;
+
+    const workspace: WorkspaceState = {
+      project,
+      openTabs,
+      activeTabId,
+    };
+
+    saveWorkspace(workspace);
+  }, [project, openTabs, activeTabId]);
 
   /* ===========================
      Update File
   =========================== */
 
-  const updateActiveFile = (content: string) => {
+  const updateActiveFile = (
+    content: string
+  ) => {
     if (!activeFile) return;
 
     activeFile.content = content;
 
-    setActiveFile({ ...activeFile });
     setProject([...project]);
+
+    setActiveFile({
+      ...activeFile,
+      content,
+    });
   };
 
   /* ===========================
@@ -63,21 +148,26 @@ export function useWorkspace() {
 
   const openFile = (file: FileNode) => {
     setActiveFile(file);
+
     setActiveTabId(file.id);
 
-    const exists = openTabs.some(
-      (tab) => tab.id === file.id
-    );
+    setOpenTabs((tabs) => {
+      const exists = tabs.some(
+        (tab) => tab.id === file.id
+      );
 
-    if (!exists) {
-      setOpenTabs((prev) => [
-        ...prev,
+      if (exists) {
+        return tabs;
+      }
+
+      return [
+        ...tabs,
         {
           id: file.id,
           name: file.name,
         },
-      ]);
-    }
+      ];
+    });
   };
 
   /* ===========================
@@ -87,18 +177,18 @@ export function useWorkspace() {
   const selectTab = (id: string) => {
     setActiveTabId(id);
 
-    const file = findFileById(project, id);
+    const file = findFileById(
+      project,
+      id
+    );
 
-    if (file) {
-      setActiveFile(file);
-    }
+    setActiveFile(file ?? null);
   };
 
   /* ===========================
      Close Tab
   =========================== */
-
-  const closeTab = (id: string) => {
+    const closeTab = (id: string) => {
     const index = openTabs.findIndex(
       (tab) => tab.id === id
     );
@@ -109,7 +199,9 @@ export function useWorkspace() {
 
     setOpenTabs(updatedTabs);
 
-    if (activeTabId !== id) return;
+    if (activeTabId !== id) {
+      return;
+    }
 
     if (updatedTabs.length === 0) {
       setActiveTabId(null);
@@ -124,22 +216,26 @@ export function useWorkspace() {
 
     setActiveTabId(nextTab.id);
 
-    const file = findFileById(project, nextTab.id);
+    const file = findFileById(
+      project,
+      nextTab.id
+    );
 
-    if (file) {
-      setActiveFile(file);
-    }
+    setActiveFile(file ?? null);
   };
 
   /* ===========================
-     Create Folder (Foundation)
+     Create Folder
   =========================== */
 
   const createFolder = (
     parentId: string,
     folderName: string
   ) => {
-    const folder = findFolderById(project, parentId);
+    const folder = findFolderById(
+      project,
+      parentId
+    );
 
     if (!folder) return;
 
@@ -149,7 +245,7 @@ export function useWorkspace() {
 
     folder.children.push({
       id: generateId(),
-      name: folderName,
+      name: folderName.trim(),
       type: "folder",
       expanded: true,
       children: [],
@@ -159,14 +255,17 @@ export function useWorkspace() {
   };
 
   /* ===========================
-     Create File (Foundation)
+     Create File
   =========================== */
 
   const createFile = (
     parentId: string,
     fileName: string
   ) => {
-    const folder = findFolderById(project, parentId);
+    const folder = findFolderById(
+      project,
+      parentId
+    );
 
     if (!folder) return;
 
@@ -176,69 +275,121 @@ export function useWorkspace() {
 
     folder.children.push({
       id: generateId(),
-      name: fileName,
+      name: fileName.trim(),
       type: "file",
       content: "",
     });
 
     setProject([...project]);
   };
+
   /* ===========================
-   Rename
-=========================== */
+     Rename
+  =========================== */
 
-const renameItem = (
-  id: string,
-  newName: string
-) => {
-  const renamed = renameNode(
-    project,
-    id,
-    newName.trim()
-  );
+  const renameItem = (
+    id: string,
+    newName: string
+  ) => {
+    const name = newName.trim();
 
-  if (!renamed) {
-    alert("A file or folder with this name already exists.");
-    return;
-  }
+    if (!name) return;
 
-  setProject([...project]);
+    const renamed = renameNode(
+      project,
+      id,
+      name
+    );
 
-  if (activeFile?.id === id) {
-    const updated = findNodeById(project, id);
-
-    if (updated && updated.type === "file") {
-      setActiveFile({ ...updated });
+    if (!renamed) {
+      alert(
+        "A file or folder with this name already exists."
+      );
+      return;
     }
-  }
-};
 
-/* ===========================
-   Delete
-=========================== */
-
-const deleteItem = (id: string) => {
-  const confirmed = window.confirm(
-    "Delete this item?"
-  );
-
-  if (!confirmed) return;
-
-  const deleted = deleteNode(project, id);
-
-  if (!deleted) return;
-
-  if (activeFile?.id === id) {
-    setActiveFile(null);
-    setActiveTabId(null);
+    setProject([...project]);
 
     setOpenTabs((tabs) =>
-      tabs.filter((tab) => tab.id !== id)
+      tabs.map((tab) =>
+        tab.id === id
+          ? {
+              ...tab,
+              name,
+            }
+          : tab
+      )
     );
-  }
 
-  setProject([...project]);
-};
+    if (activeFile?.id === id) {
+      const updated = findNodeById(
+        project,
+        id
+      );
+
+      if (
+        updated &&
+        updated.type === "file"
+      ) {
+        setActiveFile({
+          ...updated,
+        });
+      }
+    }
+  };
+
+  /* ===========================
+     Delete
+  =========================== */
+
+  const deleteItem = (id: string) => {
+    const confirmed =
+      window.confirm(
+        "Delete this item?"
+      );
+
+    if (!confirmed) return;
+
+    const deleted = deleteNode(
+      project,
+      id
+    );
+
+    if (!deleted) return;
+
+    const remainingTabs =
+      openTabs.filter(
+        (tab) => tab.id !== id
+      );
+
+    setOpenTabs(remainingTabs);
+
+    if (activeFile?.id === id) {
+      if (remainingTabs.length > 0) {
+        const nextTab =
+          remainingTabs[
+            remainingTabs.length - 1
+          ];
+
+        setActiveTabId(nextTab.id);
+
+        const nextFile =
+          findFileById(
+            project,
+            nextTab.id
+          );
+
+        setActiveFile(
+          nextFile ?? null
+        );
+      } else {
+        setActiveTabId(null);
+        setActiveFile(null);
+      }
+    }
+
+    setProject([...project]);
+  };
 
   return {
     project,
@@ -266,5 +417,6 @@ const deleteItem = (id: string) => {
 
     renameItem,
     deleteItem,
+    setOpenTabs,
   };
 }
