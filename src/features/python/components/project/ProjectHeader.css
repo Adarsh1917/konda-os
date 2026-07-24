@@ -1,0 +1,67 @@
+.project-header {
+  height: 56px;
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  padding: 0 18px;
+
+  border-bottom: 1px solid #27272a;
+
+  background: #18181b;
+}
+
+.project-info {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 4px;
+}
+
+.project-title {
+  font-size: 16px;
+
+  font-weight: 600;
+}
+
+.project-status {
+  font-size: 12px;
+}
+
+.saved {
+  color: #22c55e;
+}
+
+.unsaved {
+  color: #f59e0b;
+}
+
+.project-actions {
+  display: flex;
+
+  gap: 10px;
+}
+
+.project-actions button {
+  background: #27272a;
+
+  color: white;
+
+  border: none;
+
+  border-radius: 8px;
+
+  padding: 8px 14px;
+
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+.project-actions button:hover {
+  background: #3f3f46;
+}

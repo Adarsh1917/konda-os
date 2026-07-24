@@ -1,5 +1,6 @@
 import "./PythonWorkspace.css";
 import Editor from "@monaco-editor/react";
+import ProjectHeader from "./components/project/ProjectHeader";
 
 import Explorer from "./components/Explorer";
 import Tabs from "./components/Tabs";
@@ -48,6 +49,10 @@ export default function PythonWorkspace() {
       </div>
 
       <div className="flex flex-1 flex-col">
+        <ProjectHeader
+  projectName="Untitled Project"
+  saved={true}
+/>
         <Tabs
           tabs={openTabs}
           activeTabId={activeTabId}
