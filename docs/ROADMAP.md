@@ -68,3 +68,32 @@
 - [ ] Multi Model AI
 - [ ] Settings
 - [ ] Final UI
+# Konda IDE Roadmap
+
+## Sprint 1
+- [ ] Activity Bar
+- [ ] Sidebar
+- [ ] Navigation
+- [ ] Explorer Toolbar
+- [ ] Explorer Search
+- [ ] Bottom Panel
+- [ ] Terminal
+- [ ] Output
+- [ ] Problems
+
+## Sprint 2
+- [ ] Command Palette
+- [ ] Project Manager
+- [ ] Theme Manager
+- [ ] Settings
+
+## Sprint 3
+- [ ] Electron Integration
+- [ ] Native File System
+- [ ] Python Runner
+
+## Sprint 4
+- [ ] Konda AI
+- [ ] AI Code Completion
+- [ ] AI Debugger
+- [ ] AI Project Memory
