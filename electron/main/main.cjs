@@ -2,6 +2,9 @@ const { app, BrowserWindow } = require("electron");
 const path = require("path");
 
 const isDev = !app.isPackaged;
+const {
+  registerRuntimeIPC,
+} = require("../ipc/runtime.cjs");
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -16,6 +19,7 @@ function createWindow() {
       nodeIntegration: false
     }
   });
+  registerRuntimeIPC(win);
 
   if (isDev) {
     win.loadURL("http://localhost:5173");

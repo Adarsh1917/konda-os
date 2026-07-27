@@ -16,7 +16,7 @@ import {
   renameNode,
   deleteNode,
   findNodeById,
-} from "../utils/tree";
+} from "../../shared/components/tree";
 
 interface OpenTab {
   id: string;

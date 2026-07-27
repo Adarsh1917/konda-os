@@ -2,7 +2,7 @@ import "./EditorPanel.css";
 
 import { useWorkspaceContext } from "../../context/WorkspaceContext";
 
-import { useEditor } from "../../../../shared/hooks/useEditor";
+import { useEditor } from "../../hooks/useEditor";
 
 import Tabs from "../tabs/Tabs";
 import MonacoEditor from "./MonacoEditor";
