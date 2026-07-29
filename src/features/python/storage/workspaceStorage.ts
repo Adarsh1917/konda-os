@@ -3,6 +3,7 @@ import type { FileNode } from "../types";
 interface OpenTab {
   id: string;
   name: string;
+  dirty: boolean;
 }
 
 export interface WorkspaceState {

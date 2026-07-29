@@ -28,6 +28,7 @@ export default function Tabs() {
             key={tab.id}
             id={tab.id}
             name={tab.name}
+            dirty={tab.dirty}
             active={tab.id === activeTabId}
             onSelect={() => selectTab(tab.id)}
             onClose={() => closeTab(tab.id)}

@@ -1,0 +1,156 @@
+.project-header {
+  height: 56px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 20px;
+
+  background: #1e1e1e;
+  border-bottom: 1px solid #2d2d2d;
+
+  box-sizing: border-box;
+  user-select: none;
+}
+
+.project-header-left,
+.project-header-center,
+.project-header-right {
+  display: flex;
+  align-items: center;
+}
+
+.project-header-left {
+  flex: 1;
+}
+
+.project-header-center {
+  gap: 12px;
+  justify-content: center;
+}
+
+.project-header-right {
+  flex: 1;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.project-title-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.project-title {
+  margin: 0;
+
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+
+  line-height: 1.2;
+}
+
+.project-subtitle {
+  margin-top: 2px;
+
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.runtime-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 80px;
+  height: 30px;
+
+  padding: 0 12px;
+
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  transition: all 0.2s ease;
+}
+
+.runtime-badge.idle {
+  background: #2d2d2d;
+  color: #d1d5db;
+}
+
+.runtime-badge.running {
+  background: #166534;
+  color: #dcfce7;
+}
+
+.runtime-time {
+  min-width: 60px;
+
+  font-size: 13px;
+  font-weight: 600;
+  color: #d1d5db;
+
+  text-align: center;
+}
+
+.header-btn {
+  height: 36px;
+
+  padding: 0 16px;
+
+  border: none;
+  border-radius: 8px;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease,
+    opacity 0.2s ease;
+}
+
+.header-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.header-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.header-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.run-btn {
+  background: #16a34a;
+  color: white;
+}
+
+.run-btn:hover:not(:disabled) {
+  background: #15803d;
+}
+
+.stop-btn {
+  background: #dc2626;
+  color: white;
+}
+
+.stop-btn:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.clear-btn {
+  background: #374151;
+  color: white;
+}
+
+.clear-btn:hover:not(:disabled) {
+  background: #4b5563;
+}

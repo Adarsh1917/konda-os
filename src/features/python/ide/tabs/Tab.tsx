@@ -4,6 +4,7 @@ interface TabProps {
   id: string;
   name: string;
   active: boolean;
+  dirty: boolean;
   onSelect: () => void;
   onClose: () => void;
 }
@@ -11,6 +12,7 @@ interface TabProps {
 export default function Tab({
   name,
   active,
+  dirty,
   onSelect,
   onClose,
 }: TabProps) {
@@ -23,6 +25,18 @@ export default function Tab({
         <span className="tab-icon">📄</span>
 
         <span className="tab-name">
+          {dirty && (
+            <span
+              style={{
+                color: "#ffb000",
+                marginRight: 6,
+                fontWeight: 700,
+              }}
+            >
+              ●
+            </span>
+          )}
+
           {name}
         </span>
       </div>
