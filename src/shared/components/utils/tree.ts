@@ -1,4 +1,10 @@
-import type { FileNode } from "../types";
+// Local FileNode type to avoid external module resolution issues
+export type FileNode = {
+  id: string;
+  name: string;
+  type: "file" | "folder";
+  children?: FileNode[];
+};
 
 /* ===========================
    Find File

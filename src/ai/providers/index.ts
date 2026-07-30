@@ -1,2 +1,2 @@
 export * from "./GeminiProvider";
-export * from "./LocalProvider";
+export * from "./OllamaProvider";

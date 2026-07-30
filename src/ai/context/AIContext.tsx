@@ -6,9 +6,12 @@ import {
 } from "react";
 
 import { AIManager } from "../AIManager";
-import { GeminiProvider, LocalProvider } from "../providers";
+import {
+  GeminiProvider,
+  OllamaProvider,
+} from "../providers";
 
-type ModelType = "gemini" | "local";
+type ModelType = "gemini" | "ollama";
 
 interface AIContextType {
   aiManager: AIManager;
@@ -22,16 +25,25 @@ interface AIProviderProps {
   children: ReactNode;
 }
 
-export function AIProvider({ children }: AIProviderProps) {
+export function AIProvider({
+  children,
+}: AIProviderProps) {
   const [selectedModel, setSelectedModel] =
-    useState<ModelType>("gemini");
+    useState<ModelType>("ollama");
 
   const aiManager = useMemo(() => {
-    if (selectedModel === "local") {
-      return new AIManager(new LocalProvider());
-    }
+    switch (selectedModel) {
+      case "ollama":
+        return new AIManager(
+          new OllamaProvider()
+        );
 
-    return new AIManager(new GeminiProvider());
+      case "gemini":
+      default:
+        return new AIManager(
+          new GeminiProvider()
+        );
+    }
   }, [selectedModel]);
 
   return (
@@ -46,3 +58,5 @@ export function AIProvider({ children }: AIProviderProps) {
     </AIContext.Provider>
   );
 }
+
+export default AIProvider;

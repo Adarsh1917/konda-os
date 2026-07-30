@@ -16,11 +16,16 @@ import {
   renameNode,
   deleteNode,
   findNodeById,
-} from "../../../shared/components/tree";
+} from "../../../shared/components/utils/tree";
+
+type WorkspaceFileNode = FileNode & {
+  content?: string;
+};
 
 interface OpenTab {
   id: string;
   name: string;
+  dirty: boolean;
 }
 
 function createDefaultWorkspace() {
@@ -35,6 +40,7 @@ function createDefaultWorkspace() {
           {
             id: firstFile.id,
             name: firstFile.name,
+            dirty: false,
           },
         ]
       : [],
@@ -165,6 +171,7 @@ export function useWorkspace() {
         {
           id: file.id,
           name: file.name,
+          dirty: false,
         },
       ];
     });
@@ -249,7 +256,7 @@ export function useWorkspace() {
       type: "folder",
       expanded: true,
       children: [],
-    });
+    } as FileNode);
 
     setProject([...project]);
   };
@@ -277,8 +284,8 @@ export function useWorkspace() {
       id: generateId(),
       name: fileName.trim(),
       type: "file",
-      content: "",
-    });
+       content: "",
+    } as WorkspaceFileNode);
 
     setProject([...project]);
   };

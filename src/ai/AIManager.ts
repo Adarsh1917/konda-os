@@ -3,6 +3,8 @@ import type { AIMessage, AIProvider } from "./types/ai";
 export class AIManager {
   private provider: AIProvider;
 
+  private conversation: AIMessage[] = [];
+
   constructor(provider: AIProvider) {
     this.provider = provider;
   }
@@ -19,18 +21,34 @@ export class AIManager {
     return this.provider.name;
   }
 
-  private buildConversation(userMessage: string): AIMessage[] {
-    return [
-      {
-        role: "user",
-        content: userMessage,
-      },
-    ];
+  clearConversation(): void {
+    this.conversation = [];
   }
 
   async sendMessage(userMessage: string): Promise<string> {
-    const messages = this.buildConversation(userMessage);
+  console.log("AIManager: sendMessage called");
 
-    return this.provider.sendMessage(messages);
+  const messages = this.buildConversation(userMessage);
+
+  console.log("Messages:", messages);
+
+  const reply = await this.provider.sendMessage(messages);
+
+  console.log("Reply:", reply);
+
+  return reply;
+}
+
+
+    const reply = await this.provider.sendMessage(
+      this.conversation
+    );
+
+    this.conversation.push({
+      role: "assistant",
+      content: reply,
+    });
+
+    return reply;
   }
 }

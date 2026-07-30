@@ -1,6 +1,7 @@
 const { ipcMain } = require("electron");
 
 const {
+  detectPython,
   runPython,
   stopPython,
 } = require("./python.cjs");
@@ -9,7 +10,6 @@ function registerRuntimeIPC(browserWindow) {
   ipcMain.handle(
     "runtime:run",
     async (_, request) => {
-
       return runPython(request, {
         stdout(text) {
           browserWindow.webContents.send(
@@ -41,20 +41,15 @@ function registerRuntimeIPC(browserWindow) {
       stopPython();
     }
   );
+
+  ipcMain.handle(
+    "runtime:detectPython",
+    async () => {
+      return detectPython();
+    }
+  );
 }
 
 module.exports = {
   registerRuntimeIPC,
 };
-const {
-  detectPython,
-  runPython,
-  stopPython,
-} = require("./python.cjs");
-
-ipcMain.handle(
-  "runtime:detectPython",
-  async () => {
-    return detectPython();
-  }
-);
