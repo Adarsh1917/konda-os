@@ -1,12 +1,14 @@
-import AppRouter from "./router/AppRouter";
-import { ChatProvider } from "./context/ChatContext";
+import { BrowserRouter } from "react-router-dom";
 
-function App() {
+import { AppProviders } from "./app/providers";
+import { AppRouter } from "./app/router";
+
+export default function App() {
   return (
-    <ChatProvider>
-      <AppRouter />
-    </ChatProvider>
+    <BrowserRouter>
+      <AppProviders>
+        <AppRouter />
+      </AppProviders>
+    </BrowserRouter>
   );
 }
-
-export default App;

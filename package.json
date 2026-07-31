@@ -4,7 +4,6 @@
   "version": "0.0.0",
   "type": "module",
   "main": "electron/main/main.cjs",
-
   "scripts": {
     "dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
     "build": "tsc -b && vite build",
@@ -12,17 +11,17 @@
     "preview": "vite preview",
     "electron": "electron ."
   },
-
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
+    "clsx": "^2.1.1",
     "electron": "^43.2.0",
     "lucide-react": "^1.25.0",
     "monaco-editor": "^0.56.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "react-router-dom": "^7.18.1"
+    "react-router-dom": "^7.18.1",
+    "zustand": "^5.0.14"
   },
-
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^24.13.2",

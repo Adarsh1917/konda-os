@@ -1,0 +1,14 @@
+.sidebar {
+  width: 260px;
+
+  padding: 20px;
+
+  background: var(--surface);
+
+  border-right: 1px solid var(--border);
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 12px;
+}

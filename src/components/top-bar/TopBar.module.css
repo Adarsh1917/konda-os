@@ -1,0 +1,40 @@
+.topBar {
+  height: 52px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 0 16px;
+
+  background: var(--surface);
+
+  border-bottom: 1px solid var(--border);
+
+  user-select: none;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo {
+  font-size: 18px;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+}
+
+.version {
+  opacity: .7;
+  font-size: 13px;
+}
