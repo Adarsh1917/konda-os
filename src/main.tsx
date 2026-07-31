@@ -2,7 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 
 import App from "./App";
-import { AIProvider } from "./ai/context/AIContext";
+import { AIProvider } from "./core/ai/providers/AIProvider";
 
 import "./styles/variables.css";
 import "./styles/globals.css";

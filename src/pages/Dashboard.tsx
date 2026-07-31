@@ -1,8 +1,7 @@
 import "./Dashboard.css";
+
 import Card from "../components/ui/Card";
-import Button from "../components/ui/Button";
-<Button>Start Chat</Button>
-// Button not used in this component
+
 import {
   Bot,
   BookOpen,
@@ -51,8 +50,8 @@ function Dashboard() {
           <h2>AI Suggestions</h2>
 
           <p>
-            Ask Konda AI to summarize notes, explain concepts,
-            solve coding problems, or organize your study plan.
+            Ask Konda AI to summarize notes, explain concepts, solve coding
+            problems, or organize your study plan.
           </p>
         </div>
       </section>

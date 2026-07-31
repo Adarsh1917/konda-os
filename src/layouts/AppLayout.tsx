@@ -1,8 +1,7 @@
 import "./AppLayout.css";
 
-import Sidebar from "../ui/home/Sidebar";
-import TopBar from "../ui/home/TopBar";
-
+import Sidebar from "../components/sidebar/Sidebar";
+import Header from "../components/header/Header";
 type AppLayoutProps = {
   children: React.ReactNode;
 };
@@ -10,7 +9,7 @@ type AppLayoutProps = {
 const AppLayout = ({ children }: AppLayoutProps) => {
   return (
     <div className="app-layout">
-      <Sidebar />
+      <Header />
 
       <div className="app-main">
         <TopBar />

@@ -13,6 +13,7 @@ interface OllamaResponse {
 export class OllamaProvider implements AIProvider {
   readonly name = "Ollama";
 
+
   async sendMessage(messages: AIMessage[]): Promise<string> {
     try {
       const response = await fetch(

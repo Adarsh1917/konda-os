@@ -1,5 +1,5 @@
 import { AppLayout } from "../layouts";
-import PythonWorkspace from "../ui/python/PythonWorkspace";
+import PythonWorkspace from "../features/python/PythonWorkspace";
 
 const PythonPage = () => {
   return (
