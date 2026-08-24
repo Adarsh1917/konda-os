@@ -1,26 +1,35 @@
 import TopBar from "../../components/top-bar/TopBar";
+
 import ActivityBar from "./ActivityBar";
 import Sidebar from "./Sidebar";
 import StatusBar from "./StatusBar";
+
 import styles from "./AppShell.module.css";
+
+import { WorkspaceProvider } from "../../features/workspace/context/WorkspaceContext";
+import EditorWorkspace from "../../features/workspace/components/EditorWorkspace";
+import { ExplorerProvider } from "../../features/explorer/context/ExplorerContext";
 
 export default function AppShell() {
   return (
-    <div className={styles.shell}>
-      <TopBar />
+    <WorkspaceProvider>
+      <ExplorerProvider>
+        <div className={styles.shell}>
+          <TopBar />
 
-      <div className={styles.content}>
-        <ActivityBar />
+          <div className={styles.content}>
+            <ActivityBar />
 
-        <Sidebar />
+            <Sidebar />
 
-        <main className={styles.workspace}>
-          <h1>🚀 Welcome to Konda OS</h1>
-          <p>Main Workspace</p>
-        </main>
-      </div>
+            <main className={styles.workspace}>
+              <EditorWorkspace />
+            </main>
+          </div>
 
-      <StatusBar />
-    </div>
+          <StatusBar />
+        </div>
+      </ExplorerProvider>
+    </WorkspaceProvider>
   );
 }

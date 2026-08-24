@@ -1,0 +1,39 @@
+.workspace {
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  height: 100%;
+}
+
+.editor {
+  flex: 1;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  background: var(--background);
+}
+
+.placeholder {
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+
+  gap: 12px;
+
+  opacity: 0.7;
+
+  user-select: none;
+}
+
+.placeholder h2 {
+  margin: 0;
+}
+
+.placeholder p {
+  margin: 0;
+}

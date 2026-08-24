@@ -1,0 +1,51 @@
+.item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  height: 30px;
+
+  padding-right: 10px;
+
+  cursor: pointer;
+
+  user-select: none;
+
+  transition: background 0.15s ease;
+}
+
+.item:hover {
+  background: rgba(255,255,255,0.06);
+}
+
+.selected {
+  background: rgba(255,255,255,0.12);
+}
+
+.label {
+  overflow: hidden;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+
+  font-size: 13px;
+}
+
+.chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 16px;
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+}
+
+.children {
+  display: flex;
+  flex-direction: column;
+}

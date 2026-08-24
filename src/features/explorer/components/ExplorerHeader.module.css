@@ -1,0 +1,57 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  height: 38px;
+
+  padding: 0 12px;
+
+  border-bottom: 1px solid var(--border);
+
+  background: var(--surface);
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+
+  color: var(--text-secondary);
+
+  user-select: none;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.button {
+  width: 28px;
+  height: 28px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  background: transparent;
+
+  color: inherit;
+
+  cursor: pointer;
+
+  border-radius: 5px;
+
+  transition: background 0.15s ease;
+}
+
+.button:hover {
+  background: rgba(255,255,255,0.08);
+}

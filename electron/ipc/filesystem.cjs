@@ -1,157 +1,110 @@
-const { dialog, ipcMain } = require("electron");
-const fs = require("fs");
+const { ipcMain } = require("electron");
+const fs = require("fs/promises");
 const path = require("path");
-const crypto = require("crypto");
 
-function createNode(fullPath, parentPath = undefined) {
-    const stat = fs.statSync(fullPath);
+let projectRoot = null;
 
-    const node = {
-        id: crypto.randomUUID(),
-        name: path.basename(fullPath),
-        type: stat.isDirectory() ? "directory" : "file",
-        path: fullPath,
-        parentPath,
-    };
-
-    if (stat.isDirectory()) {
-        node.expanded = true;
-
-        node.children = fs
-            .readdirSync(fullPath)
-            .sort((a, b) => a.localeCompare(b))
-            .map((name) =>
-                createNode(
-                    path.join(fullPath, name),
-                    fullPath
-                )
-            );
-    }
-
-    return node;
+function setProjectRoot(directory) {
+  projectRoot = path.resolve(directory);
 }
 
-function registerFileSystemIPC() {
+function resolveProjectPath(targetPath) {
+  if (
+    typeof targetPath !== "string" ||
+    targetPath.trim().length === 0
+  ) {
+    throw new Error("A file path is required.");
+  }
 
-    ipcMain.handle("filesystem:openFolder", async () => {
+  if (!projectRoot) {
+    throw new Error("Open a project before accessing its files.");
+  }
 
-        const result = await dialog.showOpenDialog({
-            properties: ["openDirectory"],
+  const resolvedPath = path.resolve(targetPath);
+  const relativePath = path.relative(
+    projectRoot,
+    resolvedPath
+  );
+
+  const isInsideProject =
+    relativePath === "" ||
+    (!relativePath.startsWith(
+      `..${path.sep}`
+    ) &&
+      relativePath !== ".." &&
+      !path.isAbsolute(relativePath));
+
+  if (!isInsideProject) {
+    throw new Error(
+      "The requested path is outside the open project."
+    );
+  }
+
+  return resolvedPath;
+}
+
+function registerFilesystemIPC() {
+  ipcMain.handle(
+    "fs:readDirectory",
+    async (_, directory) => {
+      const entries = await fs.readdir(
+        resolveProjectPath(directory),
+        {
+          withFileTypes: true,
+        }
+      );
+
+      return entries
+        .map((entry) => ({
+          name: entry.name,
+          isDirectory: entry.isDirectory(),
+        }))
+        .sort((left, right) => {
+          if (
+            left.isDirectory !==
+            right.isDirectory
+          ) {
+            return left.isDirectory ? -1 : 1;
+          }
+
+          return left.name.localeCompare(
+            right.name,
+            undefined,
+            { numeric: true }
+          );
         });
+    }
+  );
 
-        if (result.canceled || result.filePaths.length === 0) {
-            return null;
-        }
+  ipcMain.handle(
+    "fs:readFile",
+    async (_, file) => {
+      return fs.readFile(
+        resolveProjectPath(file),
+        "utf8"
+      );
+    }
+  );
 
-        const rootPath = result.filePaths[0];
+  ipcMain.handle(
+    "fs:writeFile",
+    async (_, file, content) => {
+      if (typeof content !== "string") {
+        throw new Error("File content must be text.");
+      }
 
-        return {
-            rootPath,
-            files: [createNode(rootPath)],
-        };
-    });
+      await fs.writeFile(
+        resolveProjectPath(file),
+        content,
+        "utf8"
+      );
 
-    ipcMain.handle("filesystem:readFile", async (_, filePath) => {
-        return fs.readFileSync(filePath, "utf8");
-    });
-
-    ipcMain.handle(
-        "filesystem:saveFile",
-        async (_, filePath, content) => {
-            fs.writeFileSync(filePath, content, "utf8");
-            return true;
-        }
-    );
+      return true;
+    }
+  );
 }
-    ipcMain.handle(
-        "filesystem:createFile",
-        async (_, filePath) => {
-            try {
-                if (!fs.existsSync(filePath)) {
-                    fs.writeFileSync(
-                        filePath,
-                        "",
-                        "utf8"
-                    );
-                }
-
-                return true;
-            } catch (error) {
-                console.error(error);
-                return false;
-            }
-        }
-    );
-
-    ipcMain.handle(
-        "filesystem:createFolder",
-        async (_, folderPath) => {
-            try {
-                if (!fs.existsSync(folderPath)) {
-                    fs.mkdirSync(
-                        folderPath,
-                        {
-                            recursive: true,
-                        }
-                    );
-                }
-
-                return true;
-            } catch (error) {
-                console.error(error);
-                return false;
-            }
-        }
-    );
-
-    ipcMain.handle(
-        "filesystem:rename",
-        async (_, oldPath, newPath) => {
-            try {
-                fs.renameSync(
-                    oldPath,
-                    newPath
-                );
-
-                return true;
-            } catch (error) {
-                console.error(error);
-                return false;
-            }
-        }
-    );
-
-    ipcMain.handle(
-        "filesystem:delete",
-        async (_, targetPath) => {
-            try {
-                const stat =
-                    fs.statSync(
-                        targetPath
-                    );
-
-                if (stat.isDirectory()) {
-                    fs.rmSync(
-                        targetPath,
-                        {
-                            recursive: true,
-                            force: true,
-                        }
-                    );
-                } else {
-                    fs.unlinkSync(
-                        targetPath
-                    );
-                }
-
-                return true;
-            } catch (error) {
-                console.error(error);
-                return false;
-            }
-        }
-    );
 
 module.exports = {
-    registerFileSystemIPC,
+  registerFilesystemIPC,
+  setProjectRoot,
 };

@@ -1,21 +1,14 @@
 import {
-  createContext,
-  useContext,
   useEffect,
   useMemo,
   useState,
   type PropsWithChildren,
 } from "react";
 
-export type ThemeMode = "light" | "dark";
-
-interface ThemeContextValue {
-  theme: ThemeMode;
-  setTheme: (theme: ThemeMode) => void;
-  toggleTheme: () => void;
-}
-
-const ThemeContext = createContext<ThemeContextValue | null>(null);
+import {
+  ThemeContext,
+  type ThemeMode,
+} from "./ThemeContext";
 
 export function ThemeProvider({ children }: PropsWithChildren) {
   const [theme, setThemeState] = useState<ThemeMode>("dark");
@@ -48,14 +41,4 @@ export function ThemeProvider({ children }: PropsWithChildren) {
       {children}
     </ThemeContext.Provider>
   );
-}
-
-export function useTheme() {
-  const context = useContext(ThemeContext);
-
-  if (!context) {
-    throw new Error("useTheme must be used inside ThemeProvider");
-  }
-
-  return context;
 }

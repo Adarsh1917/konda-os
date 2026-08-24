@@ -1,45 +1,50 @@
 import { useNavigation } from "../navigation";
 import styles from "./Sidebar.module.css";
 
+import ExplorerHeader from "../../features/explorer/components/ExplorerHeader";
+import ExplorerTree from "../../features/explorer/components/ExplorerTree";
+
 export default function Sidebar() {
   const { activeItem } = useNavigation();
 
   return (
     <aside className={styles.sidebar}>
       {activeItem === "explorer" && (
-        <>
-          <h3>Explorer</h3>
-          <p>Konda OS</p>
-          <p>src</p>
-          <p>components</p>
-        </>
+        <div className={styles.section}>
+          <ExplorerHeader />
+
+          <ExplorerTree />
+        </div>
       )}
 
       {activeItem === "ai" && (
-        <>
-          <h3>Konda AI</h3>
-          <p>AI Chat</p>
-          <p>History</p>
-          <p>Models</p>
-        </>
+        <div className={styles.section}>
+          <h3 className={styles.title}>KONDA AI</h3>
+
+          <div className={styles.item}>AI Chat</div>
+          <div className={styles.item}>History</div>
+          <div className={styles.item}>Models</div>
+        </div>
       )}
 
       {activeItem === "terminal" && (
-        <>
-          <h3>Terminal</h3>
-          <p>PowerShell</p>
-          <p>Bash</p>
-          <p>Logs</p>
-        </>
+        <div className={styles.section}>
+          <h3 className={styles.title}>TERMINAL</h3>
+
+          <div className={styles.item}>PowerShell</div>
+          <div className={styles.item}>Bash</div>
+          <div className={styles.item}>Logs</div>
+        </div>
       )}
 
       {activeItem === "settings" && (
-        <>
-          <h3>Settings</h3>
-          <p>Appearance</p>
-          <p>Editor</p>
-          <p>About</p>
-        </>
+        <div className={styles.section}>
+          <h3 className={styles.title}>SETTINGS</h3>
+
+          <div className={styles.item}>Appearance</div>
+          <div className={styles.item}>Editor</div>
+          <div className={styles.item}>About</div>
+        </div>
       )}
     </aside>
   );

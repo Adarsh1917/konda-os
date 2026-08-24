@@ -2,9 +2,14 @@ const { app, BrowserWindow } = require("electron");
 const path = require("path");
 
 const isDev = !app.isPackaged;
+
 const {
-  registerRuntimeIPC,
-} = require("../ipc/runtime.cjs");
+  registerProjectIPC,
+} = require("../ipc/project.cjs");
+
+const {
+  registerFilesystemIPC,
+} = require("../ipc/filesystem.cjs");
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -13,23 +18,39 @@ function createWindow() {
     minWidth: 1100,
     minHeight: 700,
     title: "Konda OS",
+
     webPreferences: {
-      preload: path.join(__dirname, "../preload/preload.cjs"),
+      preload: path.join(
+        __dirname,
+        "../preload/preload.cjs"
+      ),
+
       contextIsolation: true,
-      nodeIntegration: false
-    }
+
+      nodeIntegration: false,
+    },
   });
-  registerRuntimeIPC(win);
 
   if (isDev) {
     win.loadURL("http://localhost:5173");
+
     win.webContents.openDevTools();
   } else {
-    win.loadFile(path.join(__dirname, "../../dist/index.html"));
+    win.loadFile(
+      path.join(
+        __dirname,
+        "../../dist/index.html"
+      )
+    );
   }
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  registerFilesystemIPC();
+  registerProjectIPC();
+
+  createWindow();
+});
 
 app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) {

@@ -1,33 +1,19 @@
-const {
-  contextBridge,
-  ipcRenderer,
-} = require("electron");
+const { contextBridge, ipcRenderer } = require("electron");
 
-contextBridge.exposeInMainWorld("electronAPI", {
-  runtime: {
+contextBridge.exposeInMainWorld("konda", {
+  readDirectory: (path) =>
+    ipcRenderer.invoke("fs:readDirectory", path),
 
-    detectPython() {
-      return ipcRenderer.invoke("runtime:detectPython");
-    },
+  readFile: (path) =>
+    ipcRenderer.invoke("fs:readFile", path),
 
-    runPython(request) {
-      return ipcRenderer.invoke("runtime:run", request);
-    },
+  writeFile: (path, content) =>
+    ipcRenderer.invoke(
+      "fs:writeFile",
+      path,
+      content
+    ),
 
-    stopPython() {
-      return ipcRenderer.invoke("runtime:stop");
-    },
-
-    onStdout(callback) {
-      ipcRenderer.on("runtime:stdout", (_, text) => callback(text));
-    },
-
-    onStderr(callback) {
-      ipcRenderer.on("runtime:stderr", (_, text) => callback(text));
-    },
-
-    onExit(callback) {
-      ipcRenderer.on("runtime:exit", (_, code) => callback(code));
-    },
-  },
+  openProject: () =>
+    ipcRenderer.invoke("project:open"),
 });

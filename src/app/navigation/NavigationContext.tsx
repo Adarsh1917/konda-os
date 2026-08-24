@@ -1,18 +1,11 @@
 import {
-  createContext,
-  useContext,
   useMemo,
   useState,
   type PropsWithChildren,
 } from "react";
 
-import type {
-  NavigationContextValue,
-  NavigationItem,
-} from "./types";
-
-const NavigationContext =
-  createContext<NavigationContextValue | null>(null);
+import type { NavigationItem } from "./types";
+import { NavigationContext } from "./NavigationContextValue";
 
 export function NavigationProvider({
   children,
@@ -35,14 +28,3 @@ export function NavigationProvider({
   );
 }
 
-export function useNavigationContext() {
-  const context = useContext(NavigationContext);
-
-  if (!context) {
-    throw new Error(
-      "useNavigationContext must be used inside NavigationProvider"
-    );
-  }
-
-  return context;
-}
