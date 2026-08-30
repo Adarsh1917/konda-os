@@ -87,8 +87,10 @@ export class OllamaService {
         id: model.name,
         name: model.name,
         provider: 'ollama',
-        description: `Ollama model: ${model.name}`,
-        tags: ['ollama'],
+        capabilities: ['chat'],
+        contextWindow: 32768,
+        installed: true,
+        enabled: true,
       }));
     } catch (error) {
       throw new Error(
@@ -154,7 +156,7 @@ export class OllamaService {
   }
 
   /**
-   * Get the current base URL.
+   * Get the current base URL for Ollama.
    */
   getBaseUrl(): string {
     return this.baseUrl;

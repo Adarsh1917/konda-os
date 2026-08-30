@@ -3,18 +3,9 @@
  * These types establish the contracts for AI services, models, and providers.
  */
 
-/**
- * Represents an AI model available for use.
- */
-export interface AIModel {
-  id: string;
-  name: string;
-  provider: string;
-  description?: string;
-  tags?: string[];
-  contextWindow?: number;
-  quantization?: string;
-}
+import type { AIModel } from "./models/Model.types";
+
+export type { AIModel } from "./models/Model.types";
 
 /**
  * Represents a text generation request.
@@ -44,7 +35,10 @@ export interface AIGenerationResponse {
 /**
  * Represents the status/health of an AI provider.
  */
-export type AIProviderStatus = 'healthy' | 'unhealthy' | 'unknown';
+export type AIProviderStatus =
+  | "healthy"
+  | "unhealthy"
+  | "unknown";
 
 /**
  * Health check result for an AI provider.
