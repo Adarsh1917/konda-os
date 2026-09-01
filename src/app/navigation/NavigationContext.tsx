@@ -1,4 +1,5 @@
 import {
+  useContext,
   useMemo,
   useState,
   type PropsWithChildren,
@@ -28,3 +29,15 @@ export function NavigationProvider({
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
+export function useNavigationContext() {
+  const context = useContext(NavigationContext);
+
+  if (!context) {
+    throw new Error(
+      "useNavigationContext must be used inside NavigationProvider"
+    );
+  }
+
+  return context;
+}
