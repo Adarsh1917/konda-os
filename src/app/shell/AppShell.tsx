@@ -9,8 +9,12 @@ import styles from "./AppShell.module.css";
 import { WorkspaceProvider } from "../../features/workspace/context/WorkspaceContext";
 import EditorWorkspace from "../../features/workspace/components/EditorWorkspace";
 import { ExplorerProvider } from "../../features/explorer/context/ExplorerContext";
+import AIChatSpace from "../../features/ai-chat/AIChatSpace";
+import { useNavigation } from "../navigation";
 
 export default function AppShell() {
+  const { activeItem } = useNavigation();
+
   return (
     <WorkspaceProvider>
       <ExplorerProvider>
@@ -23,7 +27,7 @@ export default function AppShell() {
             <Sidebar />
 
             <main className={styles.workspace}>
-              <EditorWorkspace />
+              {activeItem === "ai" ? <AIChatSpace /> : <EditorWorkspace />}
             </main>
           </div>
 
