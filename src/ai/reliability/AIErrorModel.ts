@@ -59,11 +59,13 @@ export function classifyAIError(error: unknown): AIErrorInfo {
 
   // Connection errors
   if (
-    message.includes('Failed to connect') ||
-    message.includes('ECONNREFUSED') ||
-    message.includes('ECONNRESET') ||
-    message.includes('ETIMEDOUT') ||
-    message.includes('network failed')
+    normalizedMessage.includes('failed to connect') ||
+    normalizedMessage.includes('econnrefused') ||
+    normalizedMessage.includes('econnreset') ||
+    normalizedMessage.includes('etimedout') ||
+    normalizedMessage.includes('network failed') ||
+    normalizedMessage.includes('network error') ||
+    normalizedMessage.includes('fetch failed')
   ) {
     return {
       category: 'connection_error',
@@ -75,7 +77,7 @@ export function classifyAIError(error: unknown): AIErrorInfo {
   }
 
   // Timeout errors
-  if (message.includes('timeout') || message.includes('Timeout') || message.includes('timed out')) {
+  if (normalizedMessage.includes('timeout') || normalizedMessage.includes('timed out')) {
     return {
       category: 'timeout',
       message: 'AI request timed out',
@@ -102,11 +104,17 @@ export function classifyAIError(error: unknown): AIErrorInfo {
 
   // Provider unavailable
   if (
-    message.includes('not running') ||
-    message.includes('unavailable') ||
-    message.includes('503') ||
-    message.includes('service unavailable') ||
-    normalizedMessage.includes('temporarily unavailable')
+    normalizedMessage.includes('not running') ||
+    normalizedMessage.includes('unavailable') ||
+    normalizedMessage.includes('503') ||
+    normalizedMessage.includes('502') ||
+    normalizedMessage.includes('504') ||
+    normalizedMessage.includes('500') ||
+    normalizedMessage.includes('service unavailable') ||
+    normalizedMessage.includes('temporarily unavailable') ||
+    normalizedMessage.includes('internal server error') ||
+    normalizedMessage.includes('bad gateway') ||
+    normalizedMessage.includes('gateway timeout')
   ) {
     return {
       category: 'provider_unavailable',

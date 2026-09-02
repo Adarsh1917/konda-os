@@ -24,6 +24,7 @@
 import type { IAIProvider } from '../providers/IAIProvider';
 import type { AIGenerationRequest, AIGenerationResponse } from '../../core/ai/types';
 import { classifyAIError, type AIErrorInfo } from './AIErrorModel';
+import { RetryBackoffEngine } from './RetryBackoffEngine';
 
 /**
  * Configuration for reliable AI client behavior.
@@ -32,6 +33,8 @@ export interface ReliableAIClientConfig {
   timeoutMs?: number;
   maxRetries?: number;
   retryBackoffMs?: number;
+  maxDelayMs?: number;
+  jitter?: boolean;
 }
 
 /**
@@ -56,12 +59,19 @@ export class ReliableAIClient {
   private timeoutMs: number;
   private maxRetries: number;
   private retryBackoffMs: number;
+  private readonly retryEngine: RetryBackoffEngine;
 
   constructor(provider: IAIProvider, config: ReliableAIClientConfig = {}) {
     this.provider = provider;
-    this.timeoutMs = config.timeoutMs || 60000; // 60 seconds default
-    this.maxRetries = config.maxRetries || 3;
-    this.retryBackoffMs = config.retryBackoffMs || 1000;
+    this.timeoutMs = config.timeoutMs ?? 60000;
+    this.maxRetries = config.maxRetries ?? 3;
+    this.retryBackoffMs = config.retryBackoffMs ?? 1000;
+    this.retryEngine = new RetryBackoffEngine({
+      maxAttempts: this.maxRetries,
+      initialDelayMs: this.retryBackoffMs,
+      maxDelayMs: config.maxDelayMs,
+      jitter: config.jitter,
+    });
   }
 
   /**
@@ -71,47 +81,36 @@ export class ReliableAIClient {
     request: AIGenerationRequest,
   ): Promise<{ response: AIGenerationResponse; metadata: AICallMetadata }> {
     const startTime = Date.now();
+    let attempts = 0;
     let lastError: AIErrorInfo | null = null;
-    let attempts: number;
 
-    for (attempts = 1; attempts <= this.maxRetries; attempts++) {
-      try {
-        const response = await this.executeWithTimeout(request);
-        const endTime = Date.now();
-
-        return {
-          response,
-          metadata: {
-            provider: this.provider.id,
-            model: request.model,
-            startTime,
-            endTime,
-            duration: endTime - startTime,
-            attempts,
-            success: true,
-          },
-        };
-      } catch (error) {
-        lastError = classifyAIError(error);
-
-        // Don't retry non-retryable errors
-        if (!lastError.retryable) {
-          throw this.createFailureResponse(startTime, attempts, lastError);
+    try {
+      const response = await this.retryEngine.execute(async () => {
+        attempts += 1;
+        try {
+          return await this.executeWithTimeout(request);
+        } catch (error) {
+          lastError = classifyAIError(error);
+          throw error;
         }
+      });
+      const endTime = Date.now();
 
-        // Don't retry if we've exhausted retries
-        if (attempts >= this.maxRetries) {
-          throw this.createFailureResponse(startTime, attempts, lastError);
-        }
-
-        // Wait before retrying with exponential backoff
-        const backoffDuration = this.retryBackoffMs * Math.pow(2, attempts - 1);
-        await this.sleep(backoffDuration);
-      }
+      return {
+        response,
+        metadata: {
+          provider: this.provider.id,
+          model: request.model,
+          startTime,
+          endTime,
+          duration: endTime - startTime,
+          attempts,
+          success: true,
+        },
+      };
+    } catch (error) {
+      throw this.createFailureResponse(startTime, attempts, lastError ?? classifyAIError(error));
     }
-
-    // Should not reach here, but handle just in case
-    throw this.createFailureResponse(startTime, attempts, lastError || classifyAIError(new Error('Unknown error')));
   }
 
   /**
@@ -155,13 +154,6 @@ export class ReliableAIClient {
     };
 
     return error;
-  }
-
-  /**
-   * Utility to sleep for a given duration.
-   */
-  private sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
