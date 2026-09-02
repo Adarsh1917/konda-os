@@ -1,4 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
+import Groq from 'groq-sdk';
 import type { AIConfig } from '../../config/AIConfig';
 import type { ProviderConfig } from '../../config/ProviderConfig';
 import type { AIProviderHealth, AIGenerationRequest, AIGenerationResponse, AIModel } from '../../../core/ai/types';
@@ -53,6 +54,68 @@ function normalizeGeminiFailure(error: unknown, apiKey?: string): Error {
   }
 
   return new Error(`Gemini provider error: ${redactSensitiveText(originalError.message, apiKey ? [apiKey] : [])}`);
+}
+
+function normalizeGroqFailure(error: unknown, apiKey?: string): Error {
+  const originalError = error instanceof Error ? error : new Error(String(error));
+  const safeMessage = redactSensitiveText(originalError.message, apiKey ? [apiKey] : []);
+  const status = typeof (error as { status?: unknown })?.status === 'number' ? (error as { status: number }).status : undefined;
+  const lowerMessage = safeMessage.toLowerCase();
+
+  if (status === 401 || status === 403 || lowerMessage.includes('api key') || lowerMessage.includes('authentication') || lowerMessage.includes('unauthorized') || lowerMessage.includes('forbidden')) {
+    return new Error('Groq authentication failed: invalid or expired API key.');
+  }
+  if (status === 429 || lowerMessage.includes('rate limit') || lowerMessage.includes('too many requests')) {
+    return new Error('Groq rate limit exceeded. Please retry later.');
+  }
+  if (lowerMessage.includes('timeout') || lowerMessage.includes('timed out')) {
+    return new Error('Groq request timed out. Please retry.');
+  }
+  if (lowerMessage.includes('network') || lowerMessage.includes('fetch failed') || lowerMessage.includes('econnrefused') || lowerMessage.includes('econnreset')) {
+    return new Error('Groq network failure. Please retry.');
+  }
+  if (status === 404 || (lowerMessage.includes('model') && (lowerMessage.includes('not found') || lowerMessage.includes('does not exist')))) {
+    return new Error('Groq model not found: check the configured model name.');
+  }
+  if (status === 400 || lowerMessage.includes('invalid') || lowerMessage.includes('malformed') || lowerMessage.includes('bad request')) {
+    return new Error('Groq invalid request: the payload or model configuration is invalid.');
+  }
+  if ((status !== undefined && status >= 500) || lowerMessage.includes('server') || lowerMessage.includes('unavailable')) {
+    return new Error('Groq provider server error: the service is temporarily unavailable.');
+  }
+
+  return new Error(`Groq provider error: ${safeMessage}`);
+}
+
+function normalizeOpenRouterFailure(error: unknown, apiKey?: string): Error {
+  const originalError = error instanceof Error ? error : new Error(String(error));
+  const safeMessage = redactSensitiveText(originalError.message, apiKey ? [apiKey] : []);
+  const status = typeof (error as { status?: unknown })?.status === 'number' ? (error as { status: number }).status : undefined;
+  const lowerMessage = safeMessage.toLowerCase();
+
+  if (status === 401 || status === 403 || lowerMessage.includes('api key') || lowerMessage.includes('authentication') || lowerMessage.includes('unauthorized') || lowerMessage.includes('forbidden')) {
+    return new Error('OpenRouter authentication failed: invalid or expired API key.');
+  }
+  if (status === 429 || lowerMessage.includes('rate limit') || lowerMessage.includes('too many requests')) {
+    return new Error('OpenRouter rate limit exceeded. Please retry later.');
+  }
+  if (originalError.name === 'AbortError' || lowerMessage.includes('timeout') || lowerMessage.includes('timed out')) {
+    return new Error('OpenRouter request timed out. Please retry.');
+  }
+  if (lowerMessage.includes('network') || lowerMessage.includes('fetch failed') || lowerMessage.includes('econnrefused') || lowerMessage.includes('econnreset')) {
+    return new Error('OpenRouter network failure. Please retry.');
+  }
+  if (status === 404 || (lowerMessage.includes('model') && (lowerMessage.includes('not found') || lowerMessage.includes('does not exist')))) {
+    return new Error('OpenRouter model not found: check the configured model name.');
+  }
+  if (status === 400 || lowerMessage.includes('invalid') || lowerMessage.includes('malformed') || lowerMessage.includes('bad request')) {
+    return new Error('OpenRouter invalid request: the payload or model configuration is invalid.');
+  }
+  if ((status !== undefined && status >= 500) || lowerMessage.includes('server') || lowerMessage.includes('unavailable')) {
+    return new Error('OpenRouter provider server error: the service is temporarily unavailable.');
+  }
+
+  return new Error(`OpenRouter provider error: ${safeMessage}`);
 }
 
 function extractGeminiText(response: Record<string, unknown>): string {
@@ -259,8 +322,17 @@ export function registerDefaultProviderAdapters(config: AIConfig, registry = pro
   if (!geminiConfig) {
     return;
   }
-
   registry.register(new GeminiProviderAdapter(geminiConfig));
+
+  const groqConfig = config.getProvider('groq');
+  if (groqConfig?.enabled && groqConfig.apiKey) {
+    registry.register(new GroqAdapter(groqConfig));
+  }
+
+  const openRouterConfig = config.getProvider('openrouter');
+  if (openRouterConfig?.enabled && openRouterConfig.apiKey) {
+    registry.register(new OpenRouterAdapter(openRouterConfig));
+  }
 }
 
 export class AnthropicAdapter extends BaseProviderAdapter<ProviderMessage> {
@@ -289,16 +361,115 @@ export class GroqAdapter extends BaseProviderAdapter<ProviderMessage> {
   readonly id = 'groq';
   readonly displayName = 'Groq';
 
-  constructor(config: ProviderConfig) {
+  private readonly client: Groq;
+
+  constructor(config: ProviderConfig, client?: Groq) {
     super(config);
+
+    const apiKey = (config.apiKey ?? '').trim();
+    if (!apiKey) {
+      throw new Error('Groq API key is not configured.');
+    }
+
+    this.client = client ?? new Groq({
+      apiKey,
+      baseURL: config.baseUrl,
+      timeout: config.requestTimeout,
+      maxRetries: 0,
+    });
+  }
+
+  async getHealth(): Promise<AIProviderHealth> {
+    if (!this.config.enabled || !this.config.apiKey) {
+      return {
+        status: 'unhealthy',
+        message: 'Groq provider is disabled or missing an API key.',
+        timestamp: Date.now(),
+      };
+    }
+
+    return {
+      status: 'healthy',
+      message: 'Groq provider is configured and ready.',
+      timestamp: Date.now(),
+    };
+  }
+
+  async listModels(): Promise<AIModel[]> {
+    try {
+      const result = await this.client.models.list();
+      const capabilities = providerCapabilitiesToModelCapabilities(this.config);
+      return result.data.map((model) => ({
+        id: model.id,
+        name: model.id,
+        provider: this.id,
+        capabilities,
+        installed: true,
+        enabled: this.config.enabled,
+      }));
+    } catch (error) {
+      throw normalizeGroqFailure(error, this.config.apiKey);
+    }
+  }
+
+  async generate(request: AIGenerationRequest): Promise<AIGenerationResponse> {
+    const model = (request.model ?? this.config.defaultModel).trim();
+    if (!model) {
+      throw new Error('Groq invalid request: a model is required.');
+    }
+
+    const messages: Groq.Chat.ChatCompletionMessageParam[] = [];
+    if (request.system) {
+      messages.push({ role: 'system', content: request.system });
+    }
+    messages.push({ role: 'user', content: request.prompt });
+    const startTime = Date.now();
+
+    try {
+      const response = await this.client.chat.completions.create({
+        model,
+        messages,
+        temperature: request.temperature,
+        top_p: request.topP,
+        max_tokens: request.maxTokens,
+        stream: false,
+      });
+      const choice = response.choices[0];
+      const usage = response.usage;
+
+      return {
+        text: typeof choice?.message?.content === 'string' ? choice.message.content : '',
+        model,
+        provider: this.id,
+        tokensGenerated: usage?.completion_tokens,
+        tokensPrompt: usage?.prompt_tokens,
+        duration: Date.now() - startTime,
+      };
+    } catch (error) {
+      throw normalizeGroqFailure(error, this.config.apiKey);
+    }
   }
 
   async sendMessage(message: ProviderMessage): Promise<ProviderAdapterResponse> {
+    const response = await this.generate({
+      model: message.model ?? this.config.defaultModel,
+      prompt: message.prompt,
+      temperature: message.temperature,
+      maxTokens: message.maxTokens,
+      system: message.systemPrompt,
+      stream: message.stream,
+    });
+
     return {
       providerId: this.id,
-      model: message.model ?? this.config.defaultModel,
-      text: message.prompt,
+      model: response.model,
+      text: response.text,
       finishReason: 'stop',
+      usage: {
+        promptTokens: response.tokensPrompt,
+        completionTokens: response.tokensGenerated,
+        totalTokens: (response.tokensPrompt ?? 0) + (response.tokensGenerated ?? 0),
+      },
     };
   }
 
@@ -311,16 +482,136 @@ export class OpenRouterAdapter extends BaseProviderAdapter<ProviderMessage> {
   readonly id = 'openrouter';
   readonly displayName = 'OpenRouter';
 
-  constructor(config: ProviderConfig) {
+  private readonly fetcher: typeof fetch;
+
+  constructor(config: ProviderConfig, fetcher: typeof fetch = fetch) {
     super(config);
+    if (!config.apiKey.trim()) {
+      throw new Error('OpenRouter API key is not configured.');
+    }
+    this.fetcher = fetcher;
+  }
+
+  private async fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
+    const controller = new AbortController();
+    const timeoutHandle = setTimeout(() => controller.abort(), this.config.requestTimeout);
+    try {
+      return await this.fetcher(input, { ...init, signal: controller.signal });
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error(`OpenRouter request timed out after ${this.config.requestTimeout}ms`);
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeoutHandle);
+    }
+  }
+
+  async getHealth(): Promise<AIProviderHealth> {
+    if (!this.config.enabled || !this.config.apiKey) {
+      return {
+        status: 'unhealthy',
+        message: 'OpenRouter provider is disabled or missing an API key.',
+        timestamp: Date.now(),
+      };
+    }
+    return {
+      status: 'healthy',
+      message: 'OpenRouter provider is configured and ready.',
+      timestamp: Date.now(),
+    };
+  }
+
+  async listModels(): Promise<AIModel[]> {
+    try {
+      const response = await this.fetchWithTimeout(`${this.config.baseUrl ?? 'https://openrouter.ai/api/v1'}/models`, {
+        headers: { Authorization: `Bearer ${this.config.apiKey}` },
+      });
+      if (!response.ok) {
+        throw Object.assign(new Error(`OpenRouter models request failed with HTTP ${response.status}`), { status: response.status });
+      }
+      const payload = await response.json() as { data?: Array<{ id?: unknown; name?: unknown }> };
+      const capabilities = providerCapabilitiesToModelCapabilities(this.config);
+      return (payload.data ?? []).filter((model) => typeof model.id === 'string').map((model) => ({
+        id: model.id as string,
+        name: typeof model.name === 'string' ? model.name : model.id as string,
+        provider: this.id,
+        capabilities,
+        installed: true,
+        enabled: this.config.enabled,
+      }));
+    } catch (error) {
+      throw normalizeOpenRouterFailure(error, this.config.apiKey);
+    }
+  }
+
+  async generate(request: AIGenerationRequest): Promise<AIGenerationResponse> {
+    const model = (request.model ?? this.config.defaultModel).trim();
+    if (!model) {
+      throw new Error('OpenRouter invalid request: a model is required.');
+    }
+    const messages: Array<{ role: 'system' | 'user'; content: string }> = [];
+    if (request.system) {
+      messages.push({ role: 'system', content: request.system });
+    }
+    messages.push({ role: 'user', content: request.prompt });
+    const startTime = Date.now();
+
+    try {
+      const response = await this.fetchWithTimeout(`${this.config.baseUrl ?? 'https://openrouter.ai/api/v1'}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${this.config.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model,
+          messages,
+          temperature: request.temperature,
+          top_p: request.topP,
+          max_tokens: request.maxTokens,
+          stream: false,
+        }),
+      });
+      if (!response.ok) {
+        throw Object.assign(new Error(`OpenRouter request failed with HTTP ${response.status}`), { status: response.status });
+      }
+      const payload = await response.json() as {
+        choices?: Array<{ message?: { content?: unknown } }>;
+        usage?: { prompt_tokens?: number; completion_tokens?: number };
+      };
+      return {
+        text: typeof payload.choices?.[0]?.message?.content === 'string' ? payload.choices[0].message.content : '',
+        model,
+        provider: this.id,
+        tokensPrompt: payload.usage?.prompt_tokens,
+        tokensGenerated: payload.usage?.completion_tokens,
+        duration: Date.now() - startTime,
+      };
+    } catch (error) {
+      throw normalizeOpenRouterFailure(error, this.config.apiKey);
+    }
   }
 
   async sendMessage(message: ProviderMessage): Promise<ProviderAdapterResponse> {
+    const response = await this.generate({
+      model: message.model ?? this.config.defaultModel,
+      prompt: message.prompt,
+      temperature: message.temperature,
+      maxTokens: message.maxTokens,
+      system: message.systemPrompt,
+      stream: message.stream,
+    });
     return {
       providerId: this.id,
-      model: message.model ?? this.config.defaultModel,
-      text: message.prompt,
+      model: response.model,
+      text: response.text,
       finishReason: 'stop',
+      usage: {
+        promptTokens: response.tokensPrompt,
+        completionTokens: response.tokensGenerated,
+        totalTokens: (response.tokensPrompt ?? 0) + (response.tokensGenerated ?? 0),
+      },
     };
   }
 

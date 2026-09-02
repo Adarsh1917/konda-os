@@ -18,6 +18,7 @@
     "@monaco-editor/react": "^4.7.0",
     "clsx": "^2.1.1",
     "electron": "^43.2.0",
+    "groq-sdk": "^1.6.0",
     "lucide-react": "^1.25.0",
     "monaco-editor": "^0.56.0",
     "react": "^19.2.7",

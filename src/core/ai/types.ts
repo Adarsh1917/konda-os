@@ -27,6 +27,7 @@ export interface AIGenerationRequest {
 export interface AIGenerationResponse {
   text: string;
   model: string;
+  provider?: string;
   tokensGenerated?: number;
   tokensPrompt?: number;
   duration?: number;

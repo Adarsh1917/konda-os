@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { ProviderConfig } from '../config/ProviderConfig';
 import { AIConfig } from '../config/AIConfig';
 import { ProviderRegistry } from '../registry/ProviderRegistry';
-import { GeminiProviderAdapter, registerDefaultProviderAdapters } from '../providers/adapters/DefaultProviderAdapters';
+import { GeminiProviderAdapter } from '../providers/adapters/DefaultProviderAdapters';
 
 describe('GeminiProviderAdapter', () => {
   const makeConfig = (overrides: Partial<ProviderConfig> = {}): ProviderConfig => ({
@@ -90,7 +90,6 @@ describe('GeminiProviderAdapter', () => {
     const config = AIConfig.fromEnv({ GEMINI_API_KEY: 'test-gemini-secret' });
     const registry = new ProviderRegistry();
 
-    registerDefaultProviderAdapters(config, registry);
     config.registerProviders(registry);
 
     expect(registry.getProviderIds()).toEqual(['gemini']);
