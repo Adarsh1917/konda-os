@@ -1,3 +1,5 @@
+import { providerRegistry, type ProviderRegistry } from '../registry/ProviderRegistry';
+import { registerDefaultProviderAdapters } from '../providers/adapters/DefaultProviderAdapters';
 import { resolveProviderConfig, SUPPORTED_PROVIDER_DEFINITIONS, type ProviderConfig } from './ProviderConfig';
 
 export class AIConfig {
@@ -31,6 +33,10 @@ export class AIConfig {
 
   getProvider(providerId: string): ProviderConfig | undefined {
     return this.providers.find((provider) => provider.id === providerId);
+  }
+
+  registerProviders(registry: ProviderRegistry = providerRegistry): void {
+    registerDefaultProviderAdapters(this, registry);
   }
 
   toSafeLog(): {

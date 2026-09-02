@@ -1,4 +1,5 @@
-import type { ProviderCapabilities, ProviderConfig } from '../../config/ProviderConfig';
+import type { AIModel } from '../../../core/ai/models/Model.types';
+import type { ProviderConfig } from '../../config/ProviderConfig';
 
 export interface ProviderMessage {
   prompt: string;
@@ -21,11 +22,25 @@ export interface ProviderAdapterResponse {
   };
 }
 
-export interface ProviderModelInfo {
-  id: string;
-  name: string;
-  contextWindow?: number;
-  capabilities?: Partial<ProviderCapabilities>;
+export type ProviderModelInfo = AIModel;
+
+export function providerCapabilitiesToModelCapabilities(config: ProviderConfig): AIModel['capabilities'] {
+  const capabilities: AIModel['capabilities'] = [];
+
+  if (config.chatEnabled) {
+    capabilities.push('chat');
+  }
+  if (config.codingEnabled) {
+    capabilities.push('coding');
+  }
+  if (config.reasoningEnabled) {
+    capabilities.push('reasoning');
+  }
+  if (config.visionEnabled) {
+    capabilities.push('vision');
+  }
+
+  return capabilities;
 }
 
 export interface ProviderAdapter<TMessage = ProviderMessage> {
@@ -60,7 +75,10 @@ export abstract class BaseProviderAdapter<TMessage = ProviderMessage> implements
       {
         id: this.config.defaultModel,
         name: this.config.defaultModel,
-        capabilities: this.config.capabilities,
+        provider: this.config.id,
+        capabilities: providerCapabilitiesToModelCapabilities(this.config),
+        installed: true,
+        enabled: this.config.enabled,
       },
     ];
   }

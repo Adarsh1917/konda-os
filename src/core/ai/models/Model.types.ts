@@ -15,7 +15,7 @@ export interface AIModel {
 
   capabilities: ModelCapability[];
 
-  contextWindow: number;
+  contextWindow?: number;
 
   installed: boolean;
 

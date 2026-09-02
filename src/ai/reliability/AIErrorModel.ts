@@ -14,6 +14,8 @@ export type AIErrorCategory =
   | 'timeout'
   | 'model_not_found'
   | 'invalid_request'
+  | 'authentication_error'
+  | 'rate_limit'
   | 'provider_error'
   | 'unknown_error';
 
@@ -36,12 +38,32 @@ export function classifyAIError(error: unknown): AIErrorInfo {
   const originalError = error instanceof Error ? error : new Error(String(error));
   const message = originalError.message;
 
+  const normalizedMessage = message.toLowerCase();
+
+  // Authentication and API key errors
+  if (
+    normalizedMessage.includes('api key') ||
+    normalizedMessage.includes('authentication') ||
+    normalizedMessage.includes('unauthorized') ||
+    normalizedMessage.includes('forbidden') ||
+    normalizedMessage.includes('invalid or expired api key')
+  ) {
+    return {
+      category: 'authentication_error',
+      message: 'AI provider authentication failed',
+      originalError,
+      retryable: false,
+      timestamp,
+    };
+  }
+
   // Connection errors
   if (
     message.includes('Failed to connect') ||
     message.includes('ECONNREFUSED') ||
     message.includes('ECONNRESET') ||
-    message.includes('ETIMEDOUT')
+    message.includes('ETIMEDOUT') ||
+    message.includes('network failed')
   ) {
     return {
       category: 'connection_error',
@@ -53,10 +75,25 @@ export function classifyAIError(error: unknown): AIErrorInfo {
   }
 
   // Timeout errors
-  if (message.includes('timeout') || message.includes('Timeout')) {
+  if (message.includes('timeout') || message.includes('Timeout') || message.includes('timed out')) {
     return {
       category: 'timeout',
       message: 'AI request timed out',
+      originalError,
+      retryable: true,
+      timestamp,
+    };
+  }
+
+  // Rate limit errors
+  if (
+    normalizedMessage.includes('rate limit') ||
+    normalizedMessage.includes('429') ||
+    normalizedMessage.includes('too many requests')
+  ) {
+    return {
+      category: 'rate_limit',
+      message: 'AI provider rate limit exceeded',
       originalError,
       retryable: true,
       timestamp,
@@ -68,7 +105,8 @@ export function classifyAIError(error: unknown): AIErrorInfo {
     message.includes('not running') ||
     message.includes('unavailable') ||
     message.includes('503') ||
-    message.includes('service unavailable')
+    message.includes('service unavailable') ||
+    normalizedMessage.includes('temporarily unavailable')
   ) {
     return {
       category: 'provider_unavailable',
@@ -80,7 +118,7 @@ export function classifyAIError(error: unknown): AIErrorInfo {
   }
 
   // Model not found
-  if (message.toLowerCase().includes('model') && (message.toLowerCase().includes('not found') || message.toLowerCase().includes('unknown'))) {
+  if (normalizedMessage.includes('model') && (normalizedMessage.includes('not found') || normalizedMessage.includes('unknown'))) {
     return {
       category: 'model_not_found',
       message: 'Requested model not found',
@@ -92,10 +130,10 @@ export function classifyAIError(error: unknown): AIErrorInfo {
 
   // Invalid request
   if (
-    message.includes('invalid') ||
-    message.includes('bad request') ||
-    message.includes('400') ||
-    message.includes('malformed')
+    normalizedMessage.includes('invalid') ||
+    normalizedMessage.includes('bad request') ||
+    normalizedMessage.includes('400') ||
+    normalizedMessage.includes('malformed')
   ) {
     return {
       category: 'invalid_request',
