@@ -5,6 +5,7 @@
 
 import type { AIGenerationRequest, AIGenerationResponse, AIModel, AIProviderHealth } from '../core/ai/types';
 import { providerRegistry, ProviderRegistry } from './registry/ProviderRegistry';
+import type { UnifiedAIGateway } from './services/UnifiedAIGateway';
 
 export interface IAIService {
   /**
@@ -50,10 +51,12 @@ export class AIService implements IAIService {
   private selectedProvider: string = 'ollama';
   private selectedModel: string = 'llama2';
   private registry: ProviderRegistry;
+  private readonly gateway?: UnifiedAIGateway;
 
-  constructor(registry?: ProviderRegistry) {
+  constructor(registry?: ProviderRegistry, gateway?: UnifiedAIGateway) {
     // Allow dependency injection for testing
     this.registry = registry || providerRegistry;
+    this.gateway = gateway;
   }
 
   async getHealth(): Promise<AIProviderHealth> {
@@ -79,6 +82,10 @@ export class AIService implements IAIService {
   }
 
   async generate(request: AIGenerationRequest): Promise<AIGenerationResponse> {
+    if (this.gateway) {
+      return this.gateway.generate(request);
+    }
+
     const provider = this.registry.get(this.selectedProvider);
     if (!provider) {
       throw new Error(`Provider '${this.selectedProvider}' not registered`);

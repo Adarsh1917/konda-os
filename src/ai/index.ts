@@ -4,6 +4,14 @@
  */
 
 export { AIService, type IAIService } from './AIService';
+export {
+  UnifiedAIGateway,
+  UnifiedAIGatewayError,
+  type RetryExecutor,
+  type UnifiedAIGatewayErrorInfo,
+  type UnifiedAIGatewayOptions,
+  type UnifiedAIGatewayRequest,
+} from './services/UnifiedAIGateway';
 export { OllamaService } from './OllamaService';
 export * from './config';
 export * from './providers';

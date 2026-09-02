@@ -17,6 +17,7 @@ export type AIErrorCategory =
   | 'authentication_error'
   | 'rate_limit'
   | 'provider_error'
+  | 'routing_failure'
   | 'unknown_error';
 
 /**

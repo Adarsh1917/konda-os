@@ -6,6 +6,8 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { AIService } from '../AIService';
 import { ProviderRegistry } from '../registry/ProviderRegistry';
 import { MockProvider } from './MockProvider';
+import { UnifiedAIGateway } from '../services/UnifiedAIGateway';
+import { RetryBackoffEngine } from '../reliability/RetryBackoffEngine';
 
 describe('AIService', () => {
   let service: AIService;
@@ -61,5 +63,36 @@ describe('AIService', () => {
     expect(() => {
       service.setSelectedProvider('non-existent');
     }).toThrow('not registered');
+  });
+
+  it('can delegate generation through the unified gateway', async () => {
+    const provider = new MockProvider('gateway-provider');
+    registry.register(provider);
+    const gateway = new UnifiedAIGateway({
+      registry,
+      router: {
+        route: () => ({
+          providerId: 'gateway-provider',
+          modelId: 'gateway-model',
+          reason: 'test',
+          fallbackProviders: [],
+          candidates: [{
+            providerId: 'gateway-provider',
+            providerName: 'Gateway Provider',
+            modelId: 'gateway-model',
+            modelName: 'Gateway Model',
+            score: 1,
+            health: 'unknown',
+          }],
+        }),
+      },
+      retryEngine: new RetryBackoffEngine({ maxAttempts: 1 }),
+    });
+    const gatewayService = new AIService(registry, gateway);
+
+    await expect(gatewayService.generate({ model: 'requested-model', prompt: 'hello' })).resolves.toMatchObject({
+      provider: 'gateway-provider',
+      model: 'gateway-model',
+    });
   });
 });
