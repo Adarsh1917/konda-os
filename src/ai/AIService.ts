@@ -6,6 +6,8 @@
 import type { AIGenerationRequest, AIGenerationResponse, AIModel, AIProviderHealth } from '../core/ai/types';
 import { providerRegistry, ProviderRegistry } from './registry/ProviderRegistry';
 import type { UnifiedAIGateway } from './services/UnifiedAIGateway';
+import { AIConfig } from './config/AIConfig';
+import { UnifiedAIGateway as DefaultUnifiedAIGateway } from './services/UnifiedAIGateway';
 
 export interface IAIService {
   /**
@@ -50,13 +52,18 @@ export interface IAIService {
 export class AIService implements IAIService {
   private selectedProvider: string = 'ollama';
   private selectedModel: string = 'llama2';
-  private registry: ProviderRegistry;
+  private readonly registry: ProviderRegistry;
   private readonly gateway?: UnifiedAIGateway;
 
   constructor(registry?: ProviderRegistry, gateway?: UnifiedAIGateway) {
-    // Allow dependency injection for testing
-    this.registry = registry || providerRegistry;
-    this.gateway = gateway;
+    this.registry = registry ?? providerRegistry;
+    this.gateway = gateway ?? (registry ? undefined : this.createApplicationGateway());
+  }
+
+  private createApplicationGateway(): UnifiedAIGateway {
+    const config = AIConfig.createDefault();
+    config.registerProviders(this.registry);
+    return new DefaultUnifiedAIGateway({ registry: this.registry });
   }
 
   async getHealth(): Promise<AIProviderHealth> {
@@ -118,3 +125,8 @@ export class AIService implements IAIService {
     this.selectedModel = model;
   }
 }
+
+/**
+ * Shared application-facing AI service used by UI adapters.
+ */
+export const appAIService = new AIService();

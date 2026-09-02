@@ -319,10 +319,9 @@ export const GeminiAdapter = GeminiProviderAdapter;
 
 export function registerDefaultProviderAdapters(config: AIConfig, registry = providerRegistry): void {
   const geminiConfig = config.getProvider('gemini');
-  if (!geminiConfig) {
-    return;
+  if (geminiConfig?.enabled && geminiConfig.apiKey) {
+    registry.register(new GeminiProviderAdapter(geminiConfig));
   }
-  registry.register(new GeminiProviderAdapter(geminiConfig));
 
   const groqConfig = config.getProvider('groq');
   if (groqConfig?.enabled && groqConfig.apiKey) {

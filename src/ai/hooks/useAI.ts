@@ -1,5 +1,4 @@
 import { ai } from "../services/AIService";
-import { chooseModel } from "../router/AIRouter";
 import { useAIStore } from "../store/AIStore";
 
 export function useAI() {
@@ -24,10 +23,7 @@ export function useAI() {
     store.setStatus("sending");
     store.setError(null);
 
-    const model = chooseModel({
-      prompt: trimmedPrompt,
-    });
-
+    const model = store.activeModel;
     store.setActiveModel(model);
     store.addMessage({
       id: crypto.randomUUID(),
@@ -62,11 +58,8 @@ export function useAI() {
       store.setStatus("success");
       store.setError(null);
       return response;
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Unable to reach the selected AI provider. Check your provider configuration and try again.";
+    } catch {
+      const message = "Unable to reach the configured AI service. Please try again.";
 
       store.setStatus("error");
       store.setError(message);
